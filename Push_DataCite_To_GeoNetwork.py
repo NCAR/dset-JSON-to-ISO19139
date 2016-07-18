@@ -20,7 +20,6 @@ XML_NAMESPACE_MAP = {'csw': 'http://www.opengis.net/cat/csw/2.0.2',
 
 
 def getDataCiteRecords():
-
 	dataCiteURL = 'https://search.datacite.org/api'
 	filterQuery = '&fq=prefix:10.5065&fq=is_active:true&wt=json'
 	filterResult = '&fl=doi,relatedIdentifier,resourceTypeGeneral,title,description,publicationYear,subject,creator,contributor,contributorType,publisher'
@@ -55,20 +54,16 @@ def getFirst(someList):
 
 
 # Search XML element tree and return the first matching element
-def getElement(baseElement, elementPath):
+# If createCopy is true, append a copy of the element to the parent element. 
+def getElement(baseElement, elementPath, createCopy=False):
 	elements = baseElement.xpath(elementPath, namespaces=XML_NAMESPACE_MAP)
-	return getFirst(elements)
-
-
-# Search element tree for a child element and add a child copy to parent if createCopy is True
-def getChildElement(rootElement, parentPath, childPath, createCopy):
-	parent = getElement(rootElement, parentPath)
-	child = getElement(parent, childPath)
+	element = getFirst(elements)
 	if createCopy:
-		childCopy = deepcopy(child)
-		parent.append(childCopy)
-		child = childCopy
-	return child
+		elementCopy = deepcopy(element)
+		element.getparent().append(elementCopy)
+		element = elementCopy
+	return element
+
 
 # Return the parts of a DataCite relatedIdentifier
 def getRelatedIdentifierParts(relatedIdentifier):
@@ -98,7 +93,6 @@ def modifyContact(contactElement, name, contactType):
 
 
 def getRecordAsISO(record, templateFileISO):
-
 	# Load the ISO template file as an XML element tree
 	tree = ElementTree.parse(templateFileISO)
 	root = tree.getroot()
@@ -139,37 +133,36 @@ def getRecordAsISO(record, templateFileISO):
 	for relatedIdentifier in relatedIdentifierList:
 		namePart, typePart, urlPart = getRelatedIdentifierParts(relatedIdentifier)
 		if typePart == "URL":
-			online = getChildElement(root, './/gmd:MD_DigitalTransferOptions', './/gmd:onLine', True)
+			online = getElement(root, './/gmd:MD_DigitalTransferOptions/gmd:onLine', True)
 			modifyOnlineResource(online, urlPart, namePart)
 
 	# Add "subject" keywords.  Fill existing element first, then create copies.
 	if record.has_key("subject"):
 		subjectList = record["subject"]
 		for i in range(len(subjectList)):
-			keyword = getChildElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords', './/gmd:keyword', i > 0)
+			keyword = getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', i > 0)
 			keyword[0].text = subjectList[i]
 	else:
-		keyword = getChildElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords', './/gmd:keyword', False)
+		keyword = getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', False)
 		keyword.getparent().remove(keyword)
-
 
 	# Add creators.  Fill existing element first, then create copies.
 	creatorList = record["creator"]
 	for i in range(len(creatorList)):
-		contact = getChildElement(root, './/gmd:MD_DataIdentification', './/gmd:pointOfContact', i > 0)
+		contact = getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', i > 0)
 		modifyContact(contact, creatorList[i], "creator")
 
 	# Add contributors
 	contributorList = record.get("contributor", [])
 	contributorTypeList = record.get("contributorType", [])
 	for i in range(len(contributorList)):
-		contact = getChildElement(root, './/gmd:MD_DataIdentification', './/gmd:pointOfContact', True)
+		contact = getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', True)
 		modifyContact(contact, contributorList[i], contributorTypeList[i])
 
 	# Add publisher
 	publisher = record.get("publisher", None)
 	if publisher:
-		contact = getChildElement(root, './/gmd:MD_DataIdentification', './/gmd:pointOfContact', True)
+		contact = getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', True)
 		modifyContact(contact, publisher, "publisher")
 
 	# Return ISO record and record identifier
@@ -180,7 +173,6 @@ def getRecordAsISO(record, templateFileISO):
 ###
 ### START OF MAIN PROGRAM
 ###
-
 
 # Create file for pushed record IDs, so deleting records through CSW is possible.
 id_file = open('pushedRecordIDs.txt', 'w')
@@ -194,7 +186,6 @@ print "##"
 
 # Loop over DataCite Records
 for record in records:
-
 	try:
 		recordISO, recordID = getRecordAsISO(record, 'insertCSW.xml')
 	except (KeyError, IndexError):
@@ -233,11 +224,7 @@ for record in records:
 
 		print response.status_code
 
-
 # Close the file with pushed record IDs
 id_file.close()
 
 print '...Finished Pushing Records.'
-
-
-
