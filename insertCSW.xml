@@ -9,11 +9,11 @@
     <language>
         <gco:CharacterString>en</gco:CharacterString>
     </language>
- <!-- ***** DATACITE: resourceTypeGeneral ***** -->
  <!-- NOTE: allowed values for hierarchyLevel are:  attribute, attributeType, collectionHardware, collectionSession, dataset, series, nonGeographicDataset, dimensionGroup, feature, featureType, propertyType, fieldSession, software, service, model, tile.  Default value is "dataset". -->
     <hierarchyLevel>
         <MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/codeList.xml#MD_ScopeCode" codeListValue="dataset"/>
     </hierarchyLevel>
+ <!-- ***** DATACITE: resourceTypeGeneral ***** -->
     <hierarchyLevelName>
         <gco:CharacterString>RESOURCE_TYPE_GENERAL</gco:CharacterString>
     </hierarchyLevelName>
