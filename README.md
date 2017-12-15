@@ -1,4 +1,6 @@
 # dset-datacite-harvester-python
+Code for pulling JSON metadata records from a website, converting the metadata to ISO XML, and saving to a file.  Not currently in active development but could be useful as a starting point for future code.
+
 A set of python scripts for converting DataCite records to ISO 19139 and pushing them to a CSW Server.
 
 These scripts assume python 2.7 is available; using python 3 is untested.
