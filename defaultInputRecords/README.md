@@ -1,4 +1,4 @@
-# dset-datacite-harvester-python
+# dset-JSON-to-ISO19139
 
 Default input folder for JSON-to-XML translation.  
 

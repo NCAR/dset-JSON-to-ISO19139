@@ -1,4 +1,4 @@
-# dset-datacite-harvester-python
+# dset-JSON-to-ISO19139
 
 A python command-line program for translating JSON metadata records to XML, conforming to these metadata standards:
 
