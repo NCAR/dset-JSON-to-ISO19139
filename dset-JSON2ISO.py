@@ -196,13 +196,18 @@ for record in records:
 	xmlOutput = XML_HEADER + recordISO
 
 	# Write the ISO record to a file for debugging purposes
-	f = open('output.xml', 'w')
+	#f = open('output.xml', 'w')
+
+        uniqueID = recordID.split('/')[1]
+
+        outputFilePath = 'output/' + uniqueID + '.xml'
+	f = open(outputFilePath, 'w')
 	f.write(xmlOutput)
 	f.close()
 
 	# Post the resulting XML to GeoNetwork CSW service.  
 	# Eventually, a check for Response code 200 should be made.
-	POST_RESULT = True
+	POST_RESULT = False
 	if POST_RESULT:
 		#GeoNetworkBaseURL = 'http://localhost:8080'
 		GeoNetworkBaseURL = 'https://geonetwork.prototype.ucar.edu'

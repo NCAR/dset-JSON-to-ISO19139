@@ -42,8 +42,8 @@ def getDeleteRecord(recordID, templateFileISO):
 ### START OF MAIN PROGRAM
 ###
 
-recordIDFile = './pushedRecordIDs.txt'
-deleteISOTemplate = './deleteCSW.xml'
+recordIDFile = '../pushedRecordIDs.txt'
+deleteISOTemplate = './templates_ISO19139/deleteCSW.xml'
 
 # Read pushed record IDs and put in a list
 with open(recordIDFile,"r") as infile:

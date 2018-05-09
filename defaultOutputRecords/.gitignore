@@ -1,0 +1,4 @@
+# ignore output XML records
+
+*.xml
+*.XML
