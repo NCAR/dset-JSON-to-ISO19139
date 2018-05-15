@@ -1,0 +1,78 @@
+{
+
+    "metadata_id": "edu.ucar.rda::ds_604.0",
+
+    "asset_type": "dataset",
+
+    "metadata_contact": {"name": "", "position": "", "organization": "", "email": "acom_metadata_support@ucar.edu"},
+
+    "metadata_date": "2018-04-26T10:05:20-07:00",
+
+    "landing_page": "https://doi.org/10.5065/D6X34W69",
+
+    "title": "ERA5 Reanalysis",
+
+    "publication_date": "2017-09-05",
+
+    "author": [{"name": "Jane Plain", "position": "Scientist", "organization": "NCAR Atmospheric Chemistry Observations & Modeling Laboratory", "email": "jane_plain@ucar.edu"},
+               {"name": "", "position": "", "organization": "European Centre for Medium-Range Weather Forecasts", "email": ""}],
+
+    "publisher": {"name": "", "position": "", "organization": "NCAR Atmospheric Chemistry Observations & Modeling Laboratory"},
+
+    "abstract": "After many years of research and technical preparation, the production of a new ECMWF climate reanalysis is in progress.\n\nERA5 is produced using high-resolution forecasts (HRES) at 31 kilometer resolution (one fourth the spatial resolution of the operational model) and a 62 kilometer resolution ten member 4D-Var ensemble of data assimilation (EDA) in CY41r2 of ECMWF's Integrated Forecast System (IFS) with 137 hybrid sigma-pressure (model) levels in the vertical, up to a top level of 0.01 hPa.",
+
+    "resource_support": {"name": "John Plain", "position": "", "organization": "NCAR Atmospheric Chemistry Observations & Modeling Laboratory", "email": "john_plain@ucar.edu"},
+
+    "resource_type": "Dataset",
+
+    "legal_constraints": "Use of this dataset is subject to UCAR's Terms of Use, except that commercial use is generally not prohibited.",
+
+    "access_constraints": "Must be a registered user of RDA ECMWF Data (Other Than Operational Data). Please update your current RDA user profile by clicking on the terms of acceptance, or create a new RDA user profile if you have not already done so.",
+
+    "language": "eng; USA",
+
+
+
+    "other_responsible_party": [{"name": "Fred Plain", "position": "Software Engineer", "organization": "NCAR Atmospheric Chemistry Observations & Modeling Laboratory", "email": "fred_plain@ucar.edu", "role": "processor"}],
+
+    "citation": "We would like to acknowledge the use of computational resources (doi:10.5065/D6RX99HX) at the NCAR-Wyoming Supercomputing Center provided by the National Science Foundation and the State of Wyoming, and supported by NCAR's Computational and Information Systems Laboratory.",
+
+    "science_support": [{"name": "Tanya Stark", "position": "Scientist I", "organization": "NCAR Climate and Global Dynamics Laboratory", "email": "tanya_stark@ucar.edu", "role": "principalInvestigator"}],
+
+    "keywords": ["EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC WATER VAPOR > WATER VAPOR INDICATORS > HUMIDITY", "EARTH SCIENCE > ATMOSPHERE > CLOUDS > CLOUD TYPES"],
+
+    "spatial_representation": ["grid"], 
+
+    "spatial_resolution": [{"distance": "5.5", "units": "meters"}], 
+
+    "topic_category": ["climatologyMeterologyAtmosphere"],
+
+    "geolocation": {"north": "90.0", "south": "-90.0", "east": "180.0", "west": "-180.0"}, 
+
+    "temporal_coverage": {"start": "2008-01-01T00:00:00Z", "end": "2018-02-01T23:00:00Z"},
+
+ 
+
+
+    "related_link": [{"name": "Related Resource #1", "linkage": "http://apps.ecmwf.int/data-catalogues/era5/?class=ea", "description": "ECMWF ERA5 Catalogue"},
+                     {"name": "Related Resource #2", "linkage": "https://climate.copernicus.eu/products/climate-reanalysis", "description": "ECMWF Climate Reanalysis at Copernicus"}],
+
+    "alternate_identifier": ["DS_604.1"],
+
+    "resource_version": "2.1.1",
+
+    "progress": "completed",
+
+    "resource_format": [{"name": "NETCDF", "version": "3"}, {"name": "ASCII"}],
+
+    "software_implementation_language": "Fortran; Java; C++",
+
+    "additional_information": "For ease of data analysis post-processing, this dataset includes NetCDF files that have been split into individual time steps.",
+
+    "distributor": {"name": "", "position": "", "organization": "NCAR Atmospheric Chemistry Observations & Modeling Laboratory", "email": "acom-support@ucar.edu"},
+
+    "distribution_format": ["TAR", "ZIP"],
+
+    "asset_size_MB": "508375",
+
+}
