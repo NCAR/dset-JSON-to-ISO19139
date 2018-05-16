@@ -32,23 +32,23 @@ childXPaths =  {
 
 # Modify contents of an "onLineResource" ISO element
 def modifyOnlineResource(transferElement, url, name='', description=''):
-	elementURL = xml.getElement(transferElement, './/gmd:linkage/gmd:URL')
-	xml.setTextOrMarkMissing(elementURL, url)
+    elementURL = xml.getElement(transferElement, './/gmd:linkage/gmd:URL')
+    xml.setTextOrMarkMissing(elementURL, url)
 
-	elementName = xml.getElement(transferElement, './/gmd:name/gco:CharacterString')
-	xml.setTextOrMarkMissing(elementName, name)
+    elementName = xml.getElement(transferElement, './/gmd:name/gco:CharacterString')
+    xml.setTextOrMarkMissing(elementName, name)
 
-	elementDescription = xml.getElement(transferElement, './/gmd:description/gco:CharacterString')
-	xml.setTextOrMarkMissing(elementDescription, description)
+    elementDescription = xml.getElement(transferElement, './/gmd:description/gco:CharacterString')
+    xml.setTextOrMarkMissing(elementDescription, description)
 
 
 # Modify contents of a "contact" ISO element
 def modifyContact(contactElement, name, email, contactType):
-	elementName = xml.getElement(contactElement, './/gmd:individualName/gco:CharacterString')
-	xml.setTextOrMarkMissing(elementName, name)
+    elementName = xml.getElement(contactElement, './/gmd:individualName/gco:CharacterString')
+    xml.setTextOrMarkMissing(elementName, name)
 
-	elementEmail = xml.getElement(contactElement, './/gmd:electronicMailAddress/gco:CharacterString')
-	xml.setTextOrMarkMissing(elementEmail, email)
+    #elementEmail = xml.getElement(contactElement, './/gmd:electronicMailAddress/gco:CharacterString')
+    #xml.setTextOrMarkMissing(elementEmail, email)
 
-	elementRole = xml.getElement(contactElement, './/gmd:CI_RoleCode')
-	elementRole.attrib['codeListValue'] = contactType
+    elementRole = xml.getElement(contactElement, './/gmd:CI_RoleCode')
+    elementRole.attrib['codeListValue'] = contactType

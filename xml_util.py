@@ -5,6 +5,12 @@
 from lxml import etree as ElementTree       # ISO XML parser
 from copy import deepcopy                   # Allows deep copy of ISO elements
 
+# Debug
+import logging
+import pprint
+log = logging.getLogger(__name__)
+
+
 # We need XML namespace mappings in order to search the ISO element tree
 XML_NAMESPACE_MAP = {'gmd': 'http://www.isotc211.org/2005/gmd',
                      'xlink': 'http://www.w3.org/1999/xlink', 
@@ -64,5 +70,11 @@ def setTextOrMarkMissing(element, fillText):
     else:
         element.getparent().attrib['{http://www.isotc211.org/2005/gco}nilReason'] = "missing"
 
+
+def toString(xml_tree):
+    outputString = ElementTree.tostring(xml_tree, pretty_print=True)
+    return outputString
+
+    
 
 
