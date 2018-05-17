@@ -73,6 +73,6 @@
 
     "distribution_format": ["TAR", "ZIP"],
 
-    "asset_size_MB": "508375",
+    "asset_size_MB": "508375"
 
 }

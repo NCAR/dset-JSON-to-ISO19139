@@ -3,11 +3,30 @@
 #
 
 
-import urllib2                              # Allows HTTP request output for simplejson
-import simplejson                           # Allows JSON to dict conversion
+import os
+import urllib2
+import simplejson
+
+
+def getJSONFileNames(dirPath):
+    """ Return a list of paths to files containing JSON records, found by recursive search in a given directory. """
+    jsonExtension = '.txt'
+    matches = []
+    for root, dirnames, filenames in os.walk(dirPath):
+        for filename in filenames:
+            if filename.endswith(jsonExtension):
+                matches.append(os.path.join(dirnames, filename))
+    return matches
+
+
+def getJSONData(jsonText):
+    """ Transform a text version of JSON data into a python dictionary. """
+    jsonData = simplejson.loads(jsonText)
+    return jsonData
 
 
 def getDataCiteRecords():
+    """ Return a list of JSON records obtained from the DataCite DOI website. """
     dataCiteURL = 'https://search.datacite.org/api'
     filterQuery = '&fq=prefix:10.5065&fq=is_active:true&wt=json'
     filterResult = '&fl=doi,relatedIdentifier,resourceTypeGeneral,title,description,publicationYear,subject,creator,contributor,contributorType,publisher'
@@ -35,8 +54,8 @@ def getDataCiteRecords():
     return records
 
 
-# Return the parts of a DataCite relatedIdentifier
 def getRelatedIdentifierParts(relatedIdentifier):
+    """ Return the parts of a DataCite relatedIdentifier object. """
     relatedIdentifierParts = relatedIdentifier.split(":")
     namePart = "Related Resource: " + relatedIdentifierParts[0]
     typePart = relatedIdentifierParts[1]

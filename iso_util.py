@@ -12,8 +12,8 @@ log = logging.getLogger(__name__)
 
 childXPaths =  {
      'individual'  : 'gmd:individualName/gco:CharacterString',
-     'organisation': 'gmd:organisationName/gco:CharacterString',
      'position'    : 'gmd:positionName/gco:CharacterString',
+     'organization': 'gmd:organisationName/gco:CharacterString',
      'email'       : 'gmd:contactInfo/gmd:CI_Contact/gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString',
      'keyword'     : 'gmd:keyword/gco:CharacterString',
      'roleCode'    : 'gmd:role/gmd:CI_RoleCode',
@@ -52,3 +52,29 @@ def modifyContact(contactElement, name, email, contactType):
 
     elementRole = xml.getElement(contactElement, './/gmd:CI_RoleCode')
     elementRole.attrib['codeListValue'] = contactType
+
+# Modify contents of a "contact" ISO element
+def modifyContactData(contactElement, contactData):
+    """ Modify contents of a "contact" ISO element, a.k.a ResponsibleParty element. """
+    if 'name' in contactData:    
+        element = xml.getElement(contactElement, childXPaths['individual'])
+        xml.setTextOrMarkMissing(element, contactData['name'])
+
+    if 'position' in contactData:    
+        element = xml.getElement(contactElement, childXPaths['position'])
+        xml.setTextOrMarkMissing(element, contactData['position'])
+
+    if 'organization' in contactData:    
+        element = xml.getElement(contactElement, childXPaths['organization'])
+        xml.setTextOrMarkMissing(element, contactData['organization'])
+
+    if 'email' in contactData:    
+        element = xml.getElement(contactElement, childXPaths['email'])
+        xml.setTextOrMarkMissing(element, contactData['email'])
+
+    if 'role' in contactData:    
+        element = xml.getElement(contactElement, childXPaths['roleCode'])
+        xml.setTextOrMarkMissing(element, contactData['role'])
+        element.attrib['codeListValue'] = contactData['role']
+
+

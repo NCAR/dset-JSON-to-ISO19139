@@ -61,7 +61,12 @@ def cutElement(baseElement, elementPath):
 
     parent = element.getparent()
     parent.remove(element)
+    #return element, parent, baseElement
     return element, parent
+
+def copyElement(element):
+    elementCopy = deepcopy(element)
+    return elementCopy
 
 
 def setTextOrMarkMissing(element, fillText):

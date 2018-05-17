@@ -5,75 +5,72 @@
 #
 
 
-import requests                             # Allows simple POST requests
-from requests.auth import HTTPBasicAuth     # Allows POST basic authentication
-
-import datacite
+import json_input
 import iso_api 
+import push_csw
 
-ISO_TEMPLATE_PATH = './templates_ISO19139/insertCSW.xml'
+import sys
+import pprint
+
+DATACITE_TEMPLATE_PATH = './templates_ISO19139/insertCSW.xml'
+DSET_TEMPLATE_PATH = './templates_ISO19139/dset_full_v10.xml'
+
+
+
+def translateDataCiteRecords():
+    # Create file for pushed record IDs, so deleting records through CSW is possible.
+    id_file = open('pushedRecordIDs.txt', 'w')
+
+    # Get records
+    records = json_input.getDataCiteRecords()
+
+    print "##"
+    print "## Pushing " + str(len(records)) + " Records..."
+    print "##"
+
+    # Loop over DataCite Records
+    for record in records:
+        try:
+            recordISO, recordID = iso_api.transformDataCiteToISO(record, DATACITE_TEMPLATE_PATH)
+        except (KeyError, IndexError):
+            print record
+            sys.exit()
+
+        XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xmlOutput = XML_HEADER + recordISO
+
+        # Write the ISO record to a file for debugging purposes
+        #f = open('output.xml', 'w')
+
+        uniqueID = recordID.split('/')[1]
+
+        outputFilePath = 'defaultOutputRecords/' + uniqueID + '.xml'
+        f = open(outputFilePath, 'w')
+        f.write(xmlOutput)
+        f.close()
+
+        # Post the resulting XML to GeoNetwork CSW service.  
+        # Eventually, a check for Response code 200 should be made.
+        POST_RESULT = False
+        if POST_RESULT:
+            push_csw.pushToCSW(xmlOutput)
+
+    # Close the file with pushed record IDs
+    id_file.close()
+
+    print '...Finished Pushing Records.'
+
 
 
 ###
 ### START OF MAIN PROGRAM
 ###
 
-# Create file for pushed record IDs, so deleting records through CSW is possible.
-id_file = open('pushedRecordIDs.txt', 'w')
+inputText = sys.stdin.readlines()
+inputText = "".join(inputText)
 
-# Get records
-records = datacite.getDataCiteRecords()
+jsonData = json_input.getJSONData(inputText)
+#pprint.pprint(jsonData)
 
-print "##"
-print "## Pushing " + str(len(records)) + " Records..."
-print "##"
-
-# Loop over DataCite Records
-for record in records:
-    try:
-        recordISO, recordID = iso_api.transformToISO(record, ISO_TEMPLATE_PATH)
-    except (KeyError, IndexError):
-        print record
-        sys.exit()
-
-    XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xmlOutput = XML_HEADER + recordISO
-
-    # Write the ISO record to a file for debugging purposes
-    #f = open('output.xml', 'w')
-
-    uniqueID = recordID.split('/')[1]
-
-    outputFilePath = 'defaultOutputRecords/' + uniqueID + '.xml'
-    f = open(outputFilePath, 'w')
-    f.write(xmlOutput)
-    f.close()
-
-    # Post the resulting XML to GeoNetwork CSW service.  
-    # Eventually, a check for Response code 200 should be made.
-    POST_RESULT = False
-    if POST_RESULT:
-        #GeoNetworkBaseURL = 'http://localhost:8080'
-        GeoNetworkBaseURL = 'https://geonetwork.prototype.ucar.edu'
-        url = GeoNetworkBaseURL + '/geonetwork/srv/eng/csw-publication?SERVICE=CSW&VERSION=2.0.2&REQUEST=INSERT'
-        header = {'Content-Type': 'text/xml'}
-
-        try:
-            response = requests.post(url, auth=HTTPBasicAuth('admin', '******'), headers=header, data=xmlOutput)
-
-            # Save recordID as a way to allow later deletion through CSW
-            id_file.write(recordID + '\n')
-
-        except requests.ConnectionError:
-            print 'ConnectionError: failed to connect: ' + url
-
-        if response.status_code != 200:
-            print response.text
-            raise OSError("Response " + str(response.status_code) + ": " + response.content)
-
-        print response.status_code
-
-# Close the file with pushed record IDs
-id_file.close()
-
-print '...Finished Pushing Records.'
+isoText = iso_api.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
+print(isoText)
