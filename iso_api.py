@@ -5,6 +5,7 @@
 import iso_util as iso
 import xml_util as xml
 import json_input
+from datetime import datetime
 
 # Debug
 import logging
@@ -20,13 +21,15 @@ parentXPaths = {
      'landingPage'         : '/gmd:MD_Metadata/gmd:dataSetURI/gco:CharacterString',
      'title'               : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString',
      'publicationDate'     : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date',
-     'citedContact'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty',
+     'citedContact'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty',
      'abstract'            : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString',
      'supportContact'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty',
      'resourceType'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "Resource Type")]/../../../../gmd:keyword/gco:CharacterString',
      'legalConstraints'    : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useLimitation/gco:CharacterString',
      'accessConstraints'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString',
 
+     'citation'            : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:credit/gco:CharacterString',
+     'keyword'             : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../gmd:keyword',
 
      'spatialRepType'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType',
      'spatialResolution'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gmd:distance',
@@ -40,105 +43,111 @@ parentXPaths = {
 } 
 
 
-def transformDSETToISO(record, templateFileISO):
+def transformDSETToISO(record, pathToTemplateFileISO):
     """ Transform a JSON record to ISO 19139 XML using a XML template file. """
-    root = xml.getXMLTree(templateFileISO)
+    root = xml.getXMLTree(pathToTemplateFileISO)
+
+    # Cut out the template's citedContact element, so we can paste in multiple copies of it later.
+    emptyContactElement, contactParent = xml.cutElement(root, parentXPaths['citedContact'])
+
+    root = transformDSETRequiredFields(root, emptyContactElement, contactParent, record)
+
+    root = transformDSETRecommendedFields(root, emptyContactElement, contactParent, record)
+
+    root = transformDSETOptionalFields(root, record)
+
+    recordAsISO = xml.toString(root)
+    return recordAsISO
+
+
 
     #########################
     #  DSET REQUIRED FIELDS
     #########################
 
+def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, record):
+
     # - Metadata Record ID
-    element = xml.getElement(root, parentXPaths['fileIdentifier'])
-    value = record['metadata_id']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['fileIdentifier'], record['metadata_id'])
 
     # - ISO Asset Type (default value: dataset)
     if record['asset_type']:
-        element = xml.getElement(root, parentXPaths['assetType'])
-        value = record['asset_type']
-        xml.setTextOrMarkMissing(element, value)
-        element.attrib['codeListValue'] = value
+        iso.setElementValue(root, parentXPaths['assetType'], record['asset_type'], True)
 
     # - Metadata Point of Contact
     element = xml.getElement(root, parentXPaths['metadataContact'])
-    value = record['metadata_contact']
-    value['role'] = 'pointOfContact'
-    iso.modifyContactData(element, value)
+    iso.modifyContactData(element, record['metadata_contact'], 'pointOfContact')
 
     # - Metadata Date
-    element = xml.getElement(root, parentXPaths['metadataDate'])
-    value = record['metadata_date']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['metadataDate'], record['metadata_date'])
 
     # - Landing Page
-    element = xml.getElement(root, parentXPaths['landingPage'])
-    value = record['landing_page']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['landingPage'], record['landing_page'])
 
     # - Title
-    element = xml.getElement(root, parentXPaths['title'])
-    value = record['title']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['title'], record['title'])
 
     # - Publication Date
-    element = xml.getElement(root, parentXPaths['publicationDate'])
-    value = record['publication_date']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['publicationDate'], record['publication_date'])
 
     # - Author
-    emptyContactElement, citedContactParent = xml.cutElement(root, parentXPaths['citedContact'])
-    values = record['author']
-    for value in values:
-        value['role'] = 'author'
-        elementCopy = xml.copyElement(emptyContactElement)
-        iso.modifyContactData(elementCopy, value)
-        citedContactParent.append(elementCopy)
-
+    authors = record['author']
+    for author in authors:
+        iso.appendContactData(citedContactParent, emptyContactElement, author, 'author')
 
     # - Publisher
-    elementCopy = xml.copyElement(emptyContactElement)
-    value = record['publisher']
-    value['role'] = 'publisher'
-    iso.modifyContactData(elementCopy, value)
-    citedContactParent.append(elementCopy)
+    iso.appendContactData(citedContactParent, emptyContactElement, record['publisher'], 'publisher')
 
     # - Abstract
-    element = xml.getElement(root, parentXPaths['abstract'])
-    value = record['abstract']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['abstract'], record['abstract'])
 
     # - Resource Support Contact
     element = xml.getElement(root, parentXPaths['supportContact'])
-    value = record['resource_support']
-    value['role'] = 'pointOfContact'
-    iso.modifyContactData(element, value)
+    iso.modifyContactData(element, record['resource_support'], 'pointOfContact')
 
     # - DataCite Resource Type
-    element = xml.getElement(root, parentXPaths['resourceType'])
-    value = record['resource_type']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['resourceType'], record['resource_type'])
 
     # - Legal Constraints
-    element = xml.getElement(root, parentXPaths['legalConstraints'])
-    value = record['legal_constraints']
-    xml.setTextOrMarkMissing(element, value)
-
-    element = xml.getElement(root, parentXPaths['accessConstraints'])
-    value = record['access_constraints']
-    xml.setTextOrMarkMissing(element, value)
+    iso.setElementValue(root, parentXPaths['legalConstraints'], record['legal_constraints'])
 
     # - Access Constraints
-    # 
-    # // RECOMMENDED FIELDS
+    iso.setElementValue(root, parentXPaths['accessConstraints'], record['access_constraints'])
+
+
+    return root
+
+
+    #############################
+    #    RECOMMENDED FIELDS
+    #############################
+def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent, record):
+
     # - Other Responsible Individual/Organization
-    # - Other Responsible Individual/Organization
-    # - Other Responsible Individual/Organization Affiliation
-    # - Other Responsible Individual/Organization Role / Type
+    if 'other_responsible_party' in record:
+        parties = record['other_responsible_party']
+        for party in parties:
+            iso.appendContactData(citedContactParent, emptyContactElement, party)
+
     # - Citation
+    if 'citation' in record:
+        element = xml.getElement(root, parentXPaths['citation'])
+        xml.setTextOrMarkMissing(element, record['citation'])
+
     # - Science Support Contact
+    if 'science_support' in record:
+        parties = record['science_support']
+        for party in parties:
+            elementCopy = xml.getElement(root, parentXPaths['supportContact'], True)
+            iso.modifyContactData(elementCopy, party, 'principalInvestigator')
+
     # - Keywords
-    # - Keyword Vocabulary
+    if 'keywords' in record:
+        keywordElement, keywordParent = xml.cutElement(root, parentXPaths['keyword'])
+        iso.addKeywords(keywordElement, keywordParent, record['keywords'])
+
+    # - Keyword Vocabulary:   Not included at this point.
+    
     # - Reference System
     # - Spatial Representation
     # - Spatial Resolution
@@ -150,6 +159,11 @@ def transformDSETToISO(record, templateFileISO):
     # - Temporal Resolution
     # - Vertical Extent
     # 
+    return root
+
+
+def transformDSETOptionalFields(root, record):
+
     # //OPTIONAL FIELDS
     # - Related Link Identifier
     # - Related Link Name
@@ -166,10 +180,7 @@ def transformDSETToISO(record, templateFileISO):
     # - Asset Size
     # - Author Identifier
 
-
-    recordAsISO = xml.toString(root)
-    return recordAsISO
-
+    return root
 
 
 
@@ -180,13 +191,18 @@ def transformDataCiteToISO(record, templateFileISO):
     root = xml.getXMLTree(templateFileISO)
 
     # Put DOI in fileIdentifier
-    fileIdentifier = xml.getElement(root, './/gmd:fileIdentifier/gco:CharacterString')
-    fileIdentifier.text = record["doi"]
+    iso.setElementValue(root, parentXPaths['fileIdentifier'], record['doi'])
+
+    # Put current time in dateStamp
+    currentTime = datetime.now().isoformat()
+    iso.setElementValue(root, parentXPaths['metadataDate'], currentTime)
 
     # Put resourceTypeGeneral in hierarchyLevelName
     if record.has_key("resourceTypeGeneral"):
-        hierarchyLevelName = xml.getElement(root, './/gmd:hierarchyLevelName/gco:CharacterString')
-        hierarchyLevelName.text = record["resourceTypeGeneral"]
+        #hierarchyLevelName = xml.getElement(root, './/gmd:hierarchyLevelName/gco:CharacterString')
+        #hierarchyLevelName.text = record["resourceTypeGeneral"]
+        # - DataCite Resource Type
+        iso.setElementValue(root, parentXPaths['resourceType'], record['resourceTypeGeneral'])
 
     # Put title in title
     title = xml.getElement(root, './/gmd:CI_Citation/gmd:title/gco:CharacterString')
@@ -201,51 +217,65 @@ def transformDataCiteToISO(record, templateFileISO):
         abstract.getparent().remove(abstract)
 
     # Put publicationYear in CI_Citation/date
-    date = xml.getElement(root, './/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date')
-    date.text = record["publicationYear"]
+    iso.setElementValue(root, parentXPaths['publicationDate'], record["publicationYear"])
 
-    # Put DOI URL in existing onlineResource
-    onlineParent = xml.getElement(root, './/gmd:MD_DigitalTransferOptions')
+    # Make DOI URL the Landing Page
     url = "http://dx.doi.org/" + record["doi"]
-    name = "Landing Page"
-    iso.modifyOnlineResource(onlineParent, url, name)
+    iso.setElementValue(root, parentXPaths['landingPage'], url)
 
     # Add relatedIdentifier as online resource if it is a URL
     relatedIdentifierList = record.get("relatedIdentifier", [])
     for relatedIdentifier in relatedIdentifierList:
         namePart, typePart, urlPart = json_input.getRelatedIdentifierParts(relatedIdentifier)
         if typePart == "URL":
-            online = xml.getElement(root, './/gmd:MD_DigitalTransferOptions/gmd:onLine', True)
+            online = xml.getElement(root, parentXPaths['relatedLink'], True)
             iso.modifyOnlineResource(online, urlPart, namePart)
 
     # Add "subject" keywords.  Fill existing element first, then create copies.
     if record.has_key("subject"):
-        subjectList = record["subject"]
-        for i in range(len(subjectList)):
-            keyword = xml.getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', i > 0)
-            keyword[0].text = subjectList[i]
-    else:
-        keyword = xml.getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', False)
-        keyword.getparent().remove(keyword)
+        #     subjectList = record["subject"]
+        #     for i in range(len(subjectList)):
+        #         keyword = xml.getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', i > 0)
+        #         keyword[0].text = subjectList[i]
+        # else:
+        #     keyword = xml.getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', False)
+        #     keyword.getparent().remove(keyword)
+        keywordElement, keywordParent = xml.cutElement(root, parentXPaths['keyword'])
+        iso.addKeywords(keywordElement, keywordParent, record['subject'])
+
+    # Cut out the template's citedContact element, so we can paste in multiple copies of it later.
+    emptyContactElement, contactParent = xml.cutElement(root, parentXPaths['citedContact'])
 
     # Add creators.  Fill existing element first, then create copies.
     creatorList = record["creator"]
-    for i in range(len(creatorList)):
-        contact = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', i > 0)
-        iso.modifyContact(contact, creatorList[i], "", "creator")
+    #for i in range(len(creatorList)):
+    #    contact = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', i > 0)
+    #    iso.modifyContact(contact, creatorList[i], "", "creator")
+    for creator in creatorList:
+        iso.appendContactData(contactParent, emptyContactElement, {"name": creator}, 'creator')
 
     # Add contributors
     contributorList = record.get("contributor", [])
     contributorTypeList = record.get("contributorType", [])
     for i in range(len(contributorList)):
-        contact = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', True)
-        iso.modifyContact(contact, contributorList[i], "", contributorTypeList[i])
+        name = contributorList[i]
+        role = contributorTypeList[i]
+        if role == 'ContactPerson':
+            # Insert Resource Support Contact
+            element = xml.getElement(root, parentXPaths['supportContact'])
+            iso.modifyContactData(element, {"name": name}, 'pointOfContact')
+            # Insert Metadata Contact
+            #element = xml.getElement(root, parentXPaths['metadataContact'])
+            #iso.modifyContactData(element, {"name": name}, 'pointOfContact')
+        else:
+            iso.appendContactData(contactParent, emptyContactElement, {"name": name}, role)
 
     # Add publisher
     publisher = record.get("publisher", None)
     if publisher:
-        contact = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', True)
-        iso.modifyContact(contact, publisher, "", "publisher")
+        #contact = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', True)
+        #iso.modifyContact(contact, publisher, "", "publisher")
+        iso.appendContactData(contactParent, emptyContactElement, {"name": publisher}, 'publisher')
 
     # Return ISO record and record identifier
     recordAsISO = xml.toString(root)

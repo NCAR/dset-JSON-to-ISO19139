@@ -12,7 +12,8 @@ import push_csw
 import sys
 import pprint
 
-DATACITE_TEMPLATE_PATH = './templates_ISO19139/insertCSW.xml'
+#DATACITE_TEMPLATE_PATH = './templates_ISO19139/insertCSW.xml'
+DATACITE_TEMPLATE_PATH = './templates_ISO19139/dset_min.xml'
 DSET_TEMPLATE_PATH = './templates_ISO19139/dset_full_v10.xml'
 
 
@@ -66,11 +67,16 @@ def translateDataCiteRecords():
 ### START OF MAIN PROGRAM
 ###
 
-inputText = sys.stdin.readlines()
-inputText = "".join(inputText)
+EXPORT_DATACITE=True
+if EXPORT_DATACITE:
+    translateDataCiteRecords()
 
-jsonData = json_input.getJSONData(inputText)
-#pprint.pprint(jsonData)
+else:
+    inputText = sys.stdin.readlines()
+    inputText = "".join(inputText)
 
-isoText = iso_api.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
-print(isoText)
+    jsonData = json_input.getJSONData(inputText)
+    #pprint.pprint(jsonData)
+
+    isoText = iso_api.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
+    print(isoText)
