@@ -186,7 +186,7 @@ def transformDSETOptionalFields(root, record):
 
 
 
-def transformDataCiteToISO(record, templateFileISO):
+def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Load the ISO template file as an XML element tree
     root = xml.getXMLTree(templateFileISO)
 
@@ -246,21 +246,19 @@ def transformDataCiteToISO(record, templateFileISO):
     # Cut out the template's citedContact element, so we can paste in multiple copies of it later.
     emptyContactElement, contactParent = xml.cutElement(root, parentXPaths['citedContact'])
 
-    # Add creators.  Fill existing element first, then create copies.
+    # Add creators as authors.  Fill existing element first, then create copies.
     creatorList = record["creator"]
-    #for i in range(len(creatorList)):
-    #    contact = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', i > 0)
-    #    iso.modifyContact(contact, creatorList[i], "", "creator")
     for creator in creatorList:
-        iso.appendContactData(contactParent, emptyContactElement, {"name": creator}, 'creator')
+        iso.appendContactData(contactParent, emptyContactElement, {"name": creator}, 'author')
 
     # Add contributors
     contributorList = record.get("contributor", [])
     contributorTypeList = record.get("contributorType", [])
     for i in range(len(contributorList)):
         name = contributorList[i]
-        role = contributorTypeList[i]
-        if role == 'ContactPerson':
+        roleDataCite = contributorTypeList[i]
+        roleISO = roleMapping[roleDataCite]
+        if roleISO == 'pointOfContact':
             # Insert Resource Support Contact
             element = xml.getElement(root, parentXPaths['supportContact'])
             iso.modifyContactData(element, {"name": name}, 'pointOfContact')
@@ -268,7 +266,7 @@ def transformDataCiteToISO(record, templateFileISO):
             #element = xml.getElement(root, parentXPaths['metadataContact'])
             #iso.modifyContactData(element, {"name": name}, 'pointOfContact')
         else:
-            iso.appendContactData(contactParent, emptyContactElement, {"name": name}, role)
+            iso.appendContactData(contactParent, emptyContactElement, {"name": name}, roleISO)
 
     # Add publisher
     publisher = record.get("publisher", None)

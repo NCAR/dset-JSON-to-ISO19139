@@ -6,7 +6,6 @@ import iso_api
 import urllib2
 import simplejson
 
-DATACITE_TEMPLATE_PATH = './templates_ISO19139/dset_min.xml'
 
 roleMappingDataCiteToISO = {
       "Creator":               "author",
@@ -41,20 +40,18 @@ def getJSONData(jsonText):
     return jsonData
 
 
-def getDataCiteRecords():
+def getDataCiteRecords(doi=None):
     """ Return a list of JSON records obtained from the DataCite DOI website. """
     dataCiteURL = 'https://search.datacite.org/api'
     filterQuery = '&fq=prefix:10.5065&fq=is_active:true&wt=json'
     filterResult = '&fl=doi,relatedIdentifier,resourceTypeGeneral,title,description,publicationYear,subject,creator,contributor,contributorType,publisher'
 
-    PROCESS_SINGLE_RECORD = False
-    if PROCESS_SINGLE_RECORD:
-        textFilter = '?q=10.5065/D68S4N4H'
+    if doi:
+        textFilter = '?q=' + doi
     else:
         textFilter = '?q=*'
 
     fullQuery = dataCiteURL + textFilter + filterQuery + filterResult
-    print fullQuery
 
     # Determine number of records
     response = urllib2.urlopen(fullQuery + '&rows=0')
@@ -81,7 +78,7 @@ def getRelatedIdentifierParts(relatedIdentifier):
 
 
 def translateDataCiteRecords():
-    # Create file for pushed record IDs, so deleting records through CSW is possible.
+    ''' batch translate DataCite Records and save to output directory. '''
 
     # Get records
     records = getDataCiteRecords()
@@ -92,14 +89,7 @@ def translateDataCiteRecords():
 
     # Loop over DataCite Records
     for record in records:
-        try:
-            recordISO, recordID = iso_api.transformDataCiteToISO(record, DATACITE_TEMPLATE_PATH)
-        except (KeyError, IndexError):
-            print record
-            sys.exit()
-
-        XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xmlOutput = XML_HEADER + recordISO
+        xmlOutput = translateDataCiteRecord(record)
 
         # Isolate the second part of a DOI identifier for the output file name
         uniqueID = recordID.split('/')[1]
@@ -111,4 +101,16 @@ def translateDataCiteRecords():
 
     print '...Finished Translating Records.'
 
+
+def translateDataCiteRecord(record, templateFile):
+    ''' Return ISO 19139 translation for a single DataCite record. '''
+    try:
+        recordISO, recordID = iso_api.transformDataCiteToISO(record, templateFile, roleMappingDataCiteToISO)
+    except (KeyError, IndexError):
+        print record
+        sys.exit()
+
+    headerXML = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    outputXML = headerXML + recordISO
+    return outputXML
 

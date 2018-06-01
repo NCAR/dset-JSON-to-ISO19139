@@ -45,7 +45,6 @@ args = parser.parse_args()
 
 
 
-import api.json_datacite as datacite
 import api.json_dset
 import api.iso_api 
 
