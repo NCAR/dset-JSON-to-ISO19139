@@ -41,7 +41,7 @@ def getTemplateFile(templateArg):
     return templatePath
 
 #
-#  Parse the command line options
+#  Parse the command line options.
 #
 parser = OverrideErrorParser(description=PROGRAM_DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter)
 
@@ -60,6 +60,9 @@ if not os.path.isfile(template):
     message = 'Template file does not exist: %s\n' % template
     parser.error(message)
 
+#
+#  Perform the translation.
+#
 if len(records) > 0:
     record = records[0]
     output = datacite.translateDataCiteRecord(record, template)
