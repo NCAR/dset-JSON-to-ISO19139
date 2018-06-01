@@ -44,10 +44,10 @@ def getTemplateFile(templateArg):
 #  Parse the command line options.
 #
 parser = OverrideErrorParser(description=PROGRAM_DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("--template", nargs=1, help="custom ISO template to use from the 'templates' folder")
 
-inputGroup = parser.add_argument_group('Arguments')
-inputGroup.add_argument("--doi", nargs=1, required=True, help="Digital Object Identifier (DOI)")
-inputGroup.add_argument("--template", nargs=1, help="ISO Template to use from the 'templates' folder")
+requiredArgs = parser.add_argument_group('required arguments')
+requiredArgs.add_argument("--doi", nargs=1, required=True, help="Digital Object Identifier (DOI)")
 
 args = parser.parse_args()
 
