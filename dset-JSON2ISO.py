@@ -4,63 +4,55 @@
 # 2. Push ISO records to a CSW Server like GeoNetwork.
 #
 
+import argparse
+from argparse import RawTextHelpFormatter
 
-import json_input
-import iso_api 
-import push_csw
+PROGRAM_DESCRIPTION = '''
+
+A program for translating JSON metadata into ISO 19139 metadata.
+
+
+Here are some working examples showing the three main uses of this program:  
+
+  * Convert a single DSET metadata record using STDIN and STDOUT:
+
+       python json2iso.py  < defaultInputRecords/test_dset_full.txt  > test_dset_full.xml
+
+
+  * Perform batch DSET metadata record processing:
+
+       python json2iso.py --input-dir ./defaultInputRecords --output-dir ./defaultOutputRecords
+
+
+  * Fetch a DataCite metadata record and produce the output in ISO 19139:
+
+       python json2iso.py --doi 10.5065/D6WD3XH5   > test_datacite.xml
+
+
+'''
+
+parser = argparse.ArgumentParser(description=PROGRAM_DESCRIPTION, formatter_class=RawTextHelpFormatter)
+
+inputGroup = parser.add_argument_group('Optional input sources')
+mutexGroup = inputGroup.add_mutually_exclusive_group()
+mutexGroup.add_argument("--doi", nargs=1, help="input DOI identifier")
+mutexGroup.add_argument("--input-dir", nargs=1, help="base directory for input records")
+
+
+outputGroup = parser.add_argument_group('Optional output source')
+outputGroup.add_argument("--output-dir", nargs=1, help="base directory for output records")
+args = parser.parse_args()
+
+
+
+import api.json_datacite as datacite
+import api.json_dset
+import api.iso_api 
 
 import sys
 import pprint
 
-#DATACITE_TEMPLATE_PATH = './templates_ISO19139/insertCSW.xml'
-DATACITE_TEMPLATE_PATH = './templates_ISO19139/dset_min.xml'
 DSET_TEMPLATE_PATH = './templates_ISO19139/dset_full_v10.xml'
-
-
-
-def translateDataCiteRecords():
-    # Create file for pushed record IDs, so deleting records through CSW is possible.
-    id_file = open('pushedRecordIDs.txt', 'w')
-
-    # Get records
-    records = json_input.getDataCiteRecords()
-
-    print "##"
-    print "## Pushing " + str(len(records)) + " Records..."
-    print "##"
-
-    # Loop over DataCite Records
-    for record in records:
-        try:
-            recordISO, recordID = iso_api.transformDataCiteToISO(record, DATACITE_TEMPLATE_PATH)
-        except (KeyError, IndexError):
-            print record
-            sys.exit()
-
-        XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xmlOutput = XML_HEADER + recordISO
-
-        # Write the ISO record to a file for debugging purposes
-        #f = open('output.xml', 'w')
-
-        uniqueID = recordID.split('/')[1]
-
-        outputFilePath = 'defaultOutputRecords/' + uniqueID + '.xml'
-        f = open(outputFilePath, 'w')
-        f.write(xmlOutput)
-        f.close()
-
-        # Post the resulting XML to GeoNetwork CSW service.  
-        # Eventually, a check for Response code 200 should be made.
-        POST_RESULT = False
-        if POST_RESULT:
-            push_csw.pushToCSW(xmlOutput)
-
-    # Close the file with pushed record IDs
-    id_file.close()
-
-    print '...Finished Pushing Records.'
-
 
 
 ###
@@ -69,13 +61,13 @@ def translateDataCiteRecords():
 
 EXPORT_DATACITE=True
 if EXPORT_DATACITE:
-    translateDataCiteRecords()
+    datacite.translateDataCiteRecords()
 
 else:
     inputText = sys.stdin.readlines()
     inputText = "".join(inputText)
 
-    jsonData = json_input.getJSONData(inputText)
+    jsonData = json_dset.getJSONData(inputText)
     #pprint.pprint(jsonData)
 
     isoText = iso_api.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)

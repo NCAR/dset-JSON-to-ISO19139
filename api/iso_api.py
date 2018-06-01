@@ -4,7 +4,7 @@
 
 import iso_util as iso
 import xml_util as xml
-import json_input
+import json_datacite
 from datetime import datetime
 
 # Debug
@@ -226,7 +226,7 @@ def transformDataCiteToISO(record, templateFileISO):
     # Add relatedIdentifier as online resource if it is a URL
     relatedIdentifierList = record.get("relatedIdentifier", [])
     for relatedIdentifier in relatedIdentifierList:
-        namePart, typePart, urlPart = json_input.getRelatedIdentifierParts(relatedIdentifier)
+        namePart, typePart, urlPart = json_datacite.getRelatedIdentifierParts(relatedIdentifier)
         if typePart == "URL":
             online = xml.getElement(root, parentXPaths['relatedLink'], True)
             iso.modifyOnlineResource(online, urlPart, namePart)
