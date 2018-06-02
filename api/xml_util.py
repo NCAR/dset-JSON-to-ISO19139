@@ -43,7 +43,9 @@ def getElement(baseElement, elementPath, createCopy=False):
 
     if createCopy:
         elementCopy = deepcopy(element)
-        element.getparent().append(elementCopy)
+        parent = element.getparent()
+        insertIndex = parent.index(element)+1
+        parent.insert(insertIndex, elementCopy)
         element = elementCopy
     return element
 

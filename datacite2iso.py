@@ -20,7 +20,7 @@ Example usage:
 
 '''
 
-class OverrideErrorParser(argparse.ArgumentParser):
+class PrintHelpOnErrorParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()
@@ -43,7 +43,7 @@ def getTemplateFile(templateArg):
 #
 #  Parse the command line options.
 #
-parser = OverrideErrorParser(description=PROGRAM_DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter)
+parser = PrintHelpOnErrorParser(description=PROGRAM_DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--template", nargs=1, help="custom ISO template to use from the 'templates' folder")
 
 requiredArgs = parser.add_argument_group('required arguments')
@@ -55,9 +55,9 @@ args = parser.parse_args()
 doi = args.doi[0]
 records = datacite.getDataCiteRecords(doi)
 
-template = getTemplateFile(args.template)
-if not os.path.isfile(template):
-    message = 'Template file does not exist: %s\n' % template
+templateFile = getTemplateFile(args.template)
+if not os.path.isfile(templateFile):
+    message = 'Template file does not exist: %s\n' % templateFile
     parser.error(message)
 
 #
@@ -65,7 +65,7 @@ if not os.path.isfile(template):
 #
 if len(records) > 0:
     record = records[0]
-    output = datacite.translateDataCiteRecord(record, template)
+    output = datacite.translateDataCiteRecord(record, templateFile)
     print(output)
 else:
     print("DOI " + doi + " was not found.\n")

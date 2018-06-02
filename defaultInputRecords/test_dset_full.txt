@@ -1,16 +1,16 @@
 {
 
-    "metadata_id": "edu.ucar.rda::ds_604.0",
+    "metadata_id": "edu.ucar.rda::test_ds_604.0",
 
     "asset_type": "dataset",
 
     "metadata_contact": {"name": "", "position": "", "organization": "", "email": "acom_metadata_support@ucar.edu"},
 
-    "metadata_date": "2018-04-26T10:05:20-07:00",
+    "metadata_date": "2018-04-26T10:05:22-07:00",
 
     "landing_page": "https://doi.org/10.5065/D6X34W69",
 
-    "title": "ERA5 Reanalysis",
+    "title": "Test DSET JSON-to-ISO Translator",
 
     "publication_date": "2017-09-05",
 
@@ -19,7 +19,7 @@
 
     "publisher": {"name": "", "position": "", "organization": "NCAR Atmospheric Chemistry Observations & Modeling Laboratory"},
 
-    "abstract": "After many years of research and technical preparation, the production of a new ECMWF climate reanalysis is in progress.\n\nERA5 is produced using high-resolution forecasts (HRES) at 31 kilometer resolution (one fourth the spatial resolution of the operational model) and a 62 kilometer resolution ten member 4D-Var ensemble of data assimilation (EDA) in CY41r2 of ECMWF's Integrated Forecast System (IFS) with 137 hybrid sigma-pressure (model) levels in the vertical, up to a top level of 0.01 hPa.",
+    "abstract": "This is a test record!  All metadata values in this record are fabricated.\n\nAfter many years of research and technical preparation, the production of a new ECMWF climate reanalysis is in progress.\n\nERA5 is produced using high-resolution forecasts (HRES) at 31 kilometer resolution (one fourth the spatial resolution of the operational model) and a 62 kilometer resolution ten member 4D-Var ensemble of data assimilation (EDA) in CY41r2 of ECMWF's Integrated Forecast System (IFS) with 137 hybrid sigma-pressure (model) levels in the vertical, up to a top level of 0.01 hPa.",
 
     "resource_support": {"name": "John Plain", "position": "", "organization": "NCAR Atmospheric Chemistry Observations & Modeling Laboratory", "email": "john_plain@ucar.edu"},
 

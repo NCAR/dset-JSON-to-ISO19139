@@ -286,10 +286,10 @@
             <gmd:resourceConstraints>
                 <gmd:MD_LegalConstraints>
                     <gmd:useLimitation>
-                        <gco:CharacterString>Unspecified Legal Constraints</gco:CharacterString>
+                        <gco:CharacterString></gco:CharacterString>
                     </gmd:useLimitation>
                     <gmd:otherConstraints>
-                        <gco:CharacterString>Unspecified Use Constraints</gco:CharacterString>
+                        <gco:CharacterString></gco:CharacterString>
                     </gmd:otherConstraints>
                 </gmd:MD_LegalConstraints>
             </gmd:resourceConstraints>

@@ -18,7 +18,7 @@ childXPaths =  {
      'roleCode'    : './/gmd:role/gmd:CI_RoleCode',
      'keyword'     : 'gmd:keyword/gco:CharacterString',
      'repTypeCode' : 'gmd:MD_SpatialRepresentationTypeCode',
-     'distance'    : 'gco:Distance',
+     'distance'    : './/gco:Distance',
      'real'        : 'gco:Real',
      'string'      : 'gco:CharacterString',
      'stringURL'   : 'gco:CharacterString[starts-with(.,"http://") or starts-with(.,"https://")]',
