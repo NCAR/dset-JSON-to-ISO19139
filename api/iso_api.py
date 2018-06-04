@@ -37,6 +37,7 @@ parentXPaths = {
      'topicCategory'       : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory',
      'geoExtent'           : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement',
      'temporalExtent'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent',
+
      'relatedLink'         : '/gmd:MD_Metadata/gmd:metadataExtensionInfo/gmd:MD_MetadataExtensionInformation/gmd:extensionOnLineResource/gmd:CI_OnlineResource',
      'distributor'         : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty',
      'resourceVersion'     : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:edition',
@@ -70,27 +71,27 @@ def transformDSETToISO(record, pathToTemplateFileISO):
 def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, record):
 
     # - Metadata Record ID
-    iso.setElementValue(root, parentXPaths['fileIdentifier'], record['metadata_id'])
+    xml.setElementValue(root, parentXPaths['fileIdentifier'], record['metadata_id'])
 
     # - ISO Asset Type (default value: dataset)
     if record['asset_type']:
-        iso.setElementValue(root, parentXPaths['assetType'], record['asset_type'], True)
+        xml.setElementValue(root, parentXPaths['assetType'], record['asset_type'], True)
 
     # - Metadata Point of Contact
     element = xml.getElement(root, parentXPaths['metadataContact'])
     iso.modifyContactData(element, record['metadata_contact'], 'pointOfContact')
 
     # - Metadata Date
-    iso.setElementValue(root, parentXPaths['metadataDate'], record['metadata_date'])
+    xml.setElementValue(root, parentXPaths['metadataDate'], record['metadata_date'])
 
     # - Landing Page
-    iso.setElementValue(root, parentXPaths['landingPage'], record['landing_page'])
+    xml.setElementValue(root, parentXPaths['landingPage'], record['landing_page'])
 
     # - Title
-    iso.setElementValue(root, parentXPaths['title'], record['title'])
+    xml.setElementValue(root, parentXPaths['title'], record['title'])
 
     # - Publication Date
-    iso.setElementValue(root, parentXPaths['publicationDate'], record['publication_date'])
+    xml.setElementValue(root, parentXPaths['publicationDate'], record['publication_date'])
 
     # - Author
     authors = record['author']
@@ -101,20 +102,20 @@ def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, r
     iso.appendContactData(citedContactParent, emptyContactElement, record['publisher'], 'publisher')
 
     # - Abstract
-    iso.setElementValue(root, parentXPaths['abstract'], record['abstract'])
+    xml.setElementValue(root, parentXPaths['abstract'], record['abstract'])
 
     # - Resource Support Contact
     element = xml.getElement(root, parentXPaths['supportContact'])
     iso.modifyContactData(element, record['resource_support'], 'pointOfContact')
 
     # - DataCite Resource Type
-    iso.setElementValue(root, parentXPaths['resourceType'], record['resource_type'])
+    xml.setElementValue(root, parentXPaths['resourceType'], record['resource_type'])
 
     # - Legal Constraints
-    iso.setElementValue(root, parentXPaths['legalConstraints'], record['legal_constraints'])
+    xml.setElementValue(root, parentXPaths['legalConstraints'], record['legal_constraints'])
 
     # - Access Constraints
-    iso.setElementValue(root, parentXPaths['accessConstraints'], record['access_constraints'])
+    xml.setElementValue(root, parentXPaths['accessConstraints'], record['access_constraints'])
 
 
     return root
@@ -150,21 +151,37 @@ def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent
 
     # - Keyword Vocabulary:   Not included at this point.
     
-    # - Reference System
+    # - Reference System:  Very complex, not shown in DASH Search, not included at this point.
 
     # - Spatial Representation
+    if 'spatial_representation' in record:
+        childXPath = 'gmd:MD_SpatialRepresentationTypeCode'
+        valueList = record['spatial_representation']
+        setCodeList = True
+        xml.addChildList(root, parentXPaths['spatialRepType'], childXPath, valueList, setCodeList)
+    else:
+        xml.cutElement(root, parentXPaths['spatialRepType'])
 
-    # - Spatial Resolution
-    #if 'spatial_resolution' in record:
-    #else:
-
-    xml.cutElement(root, parentXPaths['spatialResolution'])
+    # - Spatial Resolution (harvest error if left unfilled)
+    if 'spatial_resolution' in record:
+        iso.addSpatialResolutionDistances(root, parentXPaths['spatialResolution'], record['spatial_resolution'])
+    else:
+        xml.cutElement(root, parentXPaths['spatialResolution'])
 
     # - ISO Topic Category
-    xml.cutElement(root, parentXPaths['topicCategory'])
+    if 'topic_category' in record:
+        childXPath = 'gmd:MD_TopicCategoryCode'
+        valueList = record['topic_category']
+        xml.addChildList(root, parentXPaths['topicCategory'], childXPath, valueList)
+    else:
+        xml.cutElement(root, parentXPaths['topicCategory'])
 
     # - GeoLocation
-    xml.cutElement(root, parentXPaths['geoExtent'])
+    if 'geolocation' in record:
+        bboxElement = xml.getElement(root, parentXPaths['geoExtent'])
+        iso.modifyBoundingBox(bboxElement, record['geolocation'])
+    else:
+        xml.cutElement(root, parentXPaths['geoExtent'])
 
     # - Temporal Coverage
 
@@ -184,12 +201,6 @@ def transformDSETOptionalFields(root, record):
     # //OPTIONAL FIELDS
     # - Related Link Identifier
     xml.cutElement(root, parentXPaths['relatedLink'])
-
-    # - Related Link Name
-
-    # - Related Link Relation Type
-
-    # - Related Link Description
 
     # - Alternate Identifier
 
@@ -223,18 +234,18 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     root = xml.getXMLTree(templateFileISO)
 
     # Put DOI in fileIdentifier
-    iso.setElementValue(root, parentXPaths['fileIdentifier'], record['doi'])
+    xml.setElementValue(root, parentXPaths['fileIdentifier'], record['doi'])
 
     # Put current time in dateStamp
     currentTime = datetime.now().isoformat()
-    iso.setElementValue(root, parentXPaths['metadataDate'], currentTime)
+    xml.setElementValue(root, parentXPaths['metadataDate'], currentTime)
 
     # Put resourceTypeGeneral in hierarchyLevelName
     if record.has_key("resourceTypeGeneral"):
         #hierarchyLevelName = xml.getElement(root, './/gmd:hierarchyLevelName/gco:CharacterString')
         #hierarchyLevelName.text = record["resourceTypeGeneral"]
         # - DataCite Resource Type
-        iso.setElementValue(root, parentXPaths['resourceType'], record['resourceTypeGeneral'])
+        xml.setElementValue(root, parentXPaths['resourceType'], record['resourceTypeGeneral'])
 
     # Put title in title
     title = xml.getElement(root, './/gmd:CI_Citation/gmd:title/gco:CharacterString')
@@ -249,11 +260,11 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
         abstract.getparent().remove(abstract)
 
     # Put publicationYear in CI_Citation/date
-    iso.setElementValue(root, parentXPaths['publicationDate'], record["publicationYear"])
+    xml.setElementValue(root, parentXPaths['publicationDate'], record["publicationYear"])
 
     # Make DOI URL the Landing Page
     url = "http://dx.doi.org/" + record["doi"]
-    iso.setElementValue(root, parentXPaths['landingPage'], url)
+    xml.setElementValue(root, parentXPaths['landingPage'], url)
 
     # Add relatedIdentifier as online resource if it is a URL
     relatedIdentifierList = record.get("relatedIdentifier", [])

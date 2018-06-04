@@ -29,13 +29,6 @@ childXPaths =  {
      'extentEnd'   : 'gml:TimePeriod/gml:endPosition',
    } 
 
-def setElementValue(xmlTreeRoot, xPath, value, setCodeListValue = False):
-    """ Set the text value, and optionally the code list value, of an element in an XML tree. """
-    element = xml.getElement(xmlTreeRoot, xPath)
-    xml.setTextOrMarkMissing(element, value)
-    if setCodeListValue:
-        element.attrib['codeListValue'] = value
-
 
 # Modify contents of an "onLineResource" ISO element
 def modifyOnlineResource(transferElement, url, name='', description=''):
@@ -47,6 +40,34 @@ def modifyOnlineResource(transferElement, url, name='', description=''):
 
     elementDescription = xml.getElement(transferElement, './/gmd:description/gco:CharacterString')
     xml.setTextOrMarkMissing(elementDescription, description)
+
+# Modify contents of a "geographic bounding box" ISO element
+def modifyBoundingBox(bboxElement, bboxRecord):
+    elementWest = xml.getElement(bboxElement, './/gmd:westBoundLongitude/gco:Decimal')
+    xml.setTextOrMarkMissing(elementWest, bboxRecord['west'])
+
+    elementEast = xml.getElement(bboxElement, './/gmd:eastBoundLongitude/gco:Decimal')
+    xml.setTextOrMarkMissing(elementEast, bboxRecord['east'])
+
+    elementNorth = xml.getElement(bboxElement, './/gmd:northBoundLatitude/gco:Decimal')
+    xml.setTextOrMarkMissing(elementNorth, bboxRecord['north'])
+
+    elementSouth = xml.getElement(bboxElement, './/gmd:southBoundLatitude/gco:Decimal')
+    xml.setTextOrMarkMissing(elementSouth, bboxRecord['south'])
+
+
+# Append a number of Spatial Resolution "distance" ISO elements
+def addSpatialResolutionDistances(xml_root, resolutionXPath, resolutionList):
+    insertCounter = 0
+    for resolution in resolutionList:
+        resolutionElement, resolutionParent, elementIndex = xml.cutElement(xml_root, resolutionXPath, True)
+        elementCopy = xml.copyElement(resolutionElement)
+        distanceElement = xml.getElement(elementCopy, childXPaths['distance'])
+        xml.setTextOrMarkMissing(distanceElement, resolution['distance'])
+        distanceElement.attrib['uom'] = resolution['units']
+        # Insert element copies back into parent, in order of creation.
+        resolutionParent.insert(elementIndex + insertCounter, elementCopy)
+        insertCounter += 1
 
 
 # Modify contents of a "contact" ISO element

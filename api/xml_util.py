@@ -17,11 +17,22 @@ XML_NAMESPACE_MAP = {'gmd': 'http://www.isotc211.org/2005/gmd',
                      'gco': 'http://www.isotc211.org/2005/gco', 
                      'gml': 'http://www.opengis.net/gml'}
 
+#
+# Tree-wide operations
+#
 def getXMLTree(templateFilePath):
     tree = ElementTree.parse(templateFilePath)
     root = tree.getroot()
     return root
 
+
+def toString(xml_tree):
+    outputString = ElementTree.tostring(xml_tree, pretty_print=True)
+    return outputString
+
+#
+# XML Element Query operations
+#
 
 # Return first item in a list if list is nonempty (returns None otherwise).
 def getFirst(someList): 
@@ -53,7 +64,7 @@ def getElement(baseElement, elementPath, createCopy=False):
 # Search XML element tree and cut the first matching element.
 # Return the cut element and the parent it was cut from.
 #
-def cutElement(baseElement, elementPath):
+def cutElement(baseElement, elementPath, returnIndex = False):
     elements = baseElement.xpath(elementPath, namespaces=XML_NAMESPACE_MAP)
     element = getFirst(elements)
     try:
@@ -62,26 +73,52 @@ def cutElement(baseElement, elementPath):
         print "Failed to find any element matching: " + elementPath
 
     parent = element.getparent()
+    elementIndex = parent.index(element)
     parent.remove(element)
-    #return element, parent, baseElement
-    return element, parent
+    # Sometimes the element's index is needed for correct insert placement.
+    if returnIndex:
+        return element, parent, elementIndex
+    else:
+        return element, parent
 
 def copyElement(element):
     elementCopy = deepcopy(element)
     return elementCopy
 
+#
+# XML Element Modify operations
+#
 
-def setTextOrMarkMissing(element, fillText):
+
+
+def setTextOrMarkMissing(element, fillText, setCodeListValue = False):
     if len(fillText) > 0:
         element.text = fillText
     else:
         element.getparent().attrib['{http://www.isotc211.org/2005/gco}nilReason'] = "missing"
+    if setCodeListValue:
+        element.attrib['codeListValue'] = fillText
 
 
-def toString(xml_tree):
-    outputString = ElementTree.tostring(xml_tree, pretty_print=True)
-    return outputString
+def setElementValue(xmlTreeRoot, xPath, value, setCodeListValue = False):
+    """ Set the text value, and optionally the code list value, of an element in an XML tree. """
+    element = getElement(xmlTreeRoot, xPath)
+    setTextOrMarkMissing(element, value, setCodeListValue)
 
-    
+
+#
+# XML Element Insert operations
+#
+
+
+def addChildList(xml_root, elementXPath, childXPath, valueList, setCodeListValue = False):
+    element = getElement(xml_root, elementXPath)
+    emptyChild, parent = cutElement(element, childXPath)
+    for value in valueList:
+        childCopy = copyElement(emptyChild)
+        #setElementValue(childCopy, childXPath, value, setCodeList)
+        setTextOrMarkMissing(childCopy, value, setCodeListValue)
+        parent.append(childCopy)
+
 
 
