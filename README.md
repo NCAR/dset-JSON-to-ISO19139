@@ -20,3 +20,26 @@ These are the package versions that have been tested:
 * simplejson==3.8.2
 * requests==2.10.0
 
+## Installation Instructions
+
+### Prerequisites 
+
+You must be on a machine with python installed, where the python "virtualenv" command is available.  This command is needed to create a python environment where you can install the python libraries lxml, simplejson, and requests.
+
+On most versions of Linux, the "virtualenv" command should be available already.  For Mac OSX, however, the pre-installed version of python does not include the "virtualenv" command.   If you wish to run on Mac OSX, you have two main courses of action: 
+
+*  Install XCode, and the "homebrew" package manager (somewhat painful to install and manage), *OR*
+*  Install Anaconda (much less painful to install and manage).  
+
+Anaconda can be downloaded here:   
+
+https://www.anaconda.com/download/#macos
+
+You can probably download either the Python 3 DMG installer or the Python 2.7 DMG installer, but only the 2.7 installer has been tested, so it is the safer choice. 
+
+Once Anaconda is installed, you should be able to run the "virtualenv" command: 
+
+     which virtualenv 
+     
+
+
