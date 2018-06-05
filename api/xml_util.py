@@ -116,7 +116,6 @@ def addChildList(xml_root, elementXPath, childXPath, valueList, setCodeListValue
     emptyChild, parent = cutElement(element, childXPath)
     for value in valueList:
         childCopy = copyElement(emptyChild)
-        #setElementValue(childCopy, childXPath, value, setCodeList)
         setTextOrMarkMissing(childCopy, value, setCodeListValue)
         parent.append(childCopy)
 

@@ -31,15 +31,16 @@ childXPaths =  {
 
 
 # Modify contents of an "onLineResource" ISO element
-def modifyOnlineResource(transferElement, url, name='', description=''):
-    elementURL = xml.getElement(transferElement, './/gmd:linkage/gmd:URL')
+def modifyOnlineResource(resourceElement, url, name='', description=''):
+    elementURL = xml.getElement(resourceElement, './/gmd:linkage/gmd:URL')
     xml.setTextOrMarkMissing(elementURL, url)
 
-    elementName = xml.getElement(transferElement, './/gmd:name/gco:CharacterString')
+    elementName = xml.getElement(resourceElement, './/gmd:name/gco:CharacterString')
     xml.setTextOrMarkMissing(elementName, name)
 
-    elementDescription = xml.getElement(transferElement, './/gmd:description/gco:CharacterString')
+    elementDescription = xml.getElement(resourceElement, './/gmd:description/gco:CharacterString')
     xml.setTextOrMarkMissing(elementDescription, description)
+
 
 # Modify contents of a "geographic bounding box" ISO element
 def modifyBoundingBox(bboxElement, bboxRecord):
@@ -54,6 +55,21 @@ def modifyBoundingBox(bboxElement, bboxRecord):
 
     elementSouth = xml.getElement(bboxElement, './/gmd:southBoundLatitude/gco:Decimal')
     xml.setTextOrMarkMissing(elementSouth, bboxRecord['south'])
+
+
+def modifyTemporalExtent(extentElement, extentRecord):
+    '''Modify contents of a "temporal extent" ISO element.'''
+    indeterminatePositions = {'before', 'after', 'now', 'unknown'}
+
+    elementBegin = xml.getElement(extentElement, childXPaths['extentBegin'])
+    xml.setTextOrMarkMissing(elementBegin, extentRecord['start'])
+    if extentRecord['start'] in indeterminatePositions:
+        elementBegin.attrib['indeterminatePosition'] = extentRecord['start']
+
+    elementEnd = xml.getElement(extentElement, childXPaths['extentEnd'])
+    xml.setTextOrMarkMissing(elementEnd, extentRecord['end'])
+    if extentRecord['end'] in indeterminatePositions:
+        elementEnd.attrib['indeterminatePosition'] = extentRecord['end']
 
 
 # Append a number of Spatial Resolution "distance" ISO elements

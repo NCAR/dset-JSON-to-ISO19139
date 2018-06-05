@@ -33,14 +33,16 @@ parentXPaths = {
 
      'spatialRepType'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType',
      'spatialResolution'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution',
-     'temporalResolution'  : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:description',
      'topicCategory'       : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory',
      'geoExtent'           : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement',
      'temporalExtent'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent',
+     'temporalResolution'  : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:description/gco:CharacterString',
 
-     'relatedLink'         : '/gmd:MD_Metadata/gmd:metadataExtensionInfo/gmd:MD_MetadataExtensionInformation/gmd:extensionOnLineResource/gmd:CI_OnlineResource',
-     'distributor'         : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty',
+     'relatedLink'         : '/gmd:MD_Metadata/gmd:metadataExtensionInfo',
+     'alternateTitle'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:alternateTitle',
      'resourceVersion'     : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:edition',
+     'progressCode'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode',
+     'distributor'         : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty',
      'softwareLanguage'    : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:environmentDescription',
      'assetSize'           : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions',
 } 
@@ -81,8 +83,13 @@ def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, r
     element = xml.getElement(root, parentXPaths['metadataContact'])
     iso.modifyContactData(element, record['metadata_contact'], 'pointOfContact')
 
-    # - Metadata Date
-    xml.setElementValue(root, parentXPaths['metadataDate'], record['metadata_date'])
+    # - Metadata Date: Use current time if not present in the record. 
+    if 'metadata_date' in record:
+        xml.setElementValue(root, parentXPaths['metadataDate'], record['metadata_date'])
+    else:
+        currentTime = datetime.now().isoformat()
+        xml.setElementValue(root, parentXPaths['metadataDate'], currentTime)
+
 
     # - Landing Page
     xml.setElementValue(root, parentXPaths['landingPage'], record['landing_page'])
@@ -151,7 +158,7 @@ def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent
 
     # - Keyword Vocabulary:   Not included at this point.
     
-    # - Reference System:  Very complex, not shown in DASH Search, not included at this point.
+    # - Reference System:  potentially very complex, not shown in DASH Search, not included at this point.
 
     # - Spatial Representation
     if 'spatial_representation' in record:
@@ -184,14 +191,17 @@ def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent
         xml.cutElement(root, parentXPaths['geoExtent'])
 
     # - Temporal Coverage
-
-    # - Start Date
-
-    # - End Date
+    if 'temporal_coverage' in record:
+        extentElement = xml.getElement(root, parentXPaths['temporalExtent'])
+        iso.modifyTemporalExtent(extentElement, record['temporal_coverage'])
+    else:
+        xml.cutElement(root, parentXPaths['temporalExtent'])
 
     # - Temporal Resolution
+    if 'temporal_resolution' in record:
+        xml.setElementValue(root, parentXPaths['temporalResolution'], record['temporal_resolution'])
 
-    # - Vertical Extent
+    # - Vertical Extent: potentially very complicated in ISO 19139; not included at this point. 
 
     return root
 
@@ -200,13 +210,47 @@ def transformDSETOptionalFields(root, record):
 
     # //OPTIONAL FIELDS
     # - Related Link Identifier
-    xml.cutElement(root, parentXPaths['relatedLink'])
+    if 'related_link' in record:
+        emptyLinkElement, parent, originalIndex = xml.cutElement(root, parentXPaths['relatedLink'], True)
+        indexCounter = 0
+        for link in record['related_link']:
+            elementCopy = xml.copyElement(emptyLinkElement)
+            onlineResourceChild = xml.getElement(elementCopy, 'gmd:MD_MetadataExtensionInformation/gmd:extensionOnLineResource/gmd:CI_OnlineResource')
+            name = link['name']
+            url = link['linkage']
+            description = link['description']
+            iso.modifyOnlineResource(onlineResourceChild, name, url, description)
+            parent.insert(originalIndex + indexCounter, elementCopy)
+            indexCounter += 1
+    else:
+        xml.cutElement(root, parentXPaths['relatedLink'])
 
     # - Alternate Identifier
+    if 'alternate_identifier' in record:
+        emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['alternateTitle'], True)
+        indexCounter = 0
+        for title in record['alternate_identifier']:
+            elementCopy = xml.copyElement(emptyElement)
+            xml.setElementValue(elementCopy, 'gco:CharacterString', title)
+            parent.insert(originalIndex + indexCounter, elementCopy)
+            indexCounter += 1
+    else:
+        xml.cutElement(root, parentXPaths['alternateTitle'])
 
     # - Resource Version
+    if 'resource_version' in record:
+        versionElement = xml.getElement(root, parentXPaths['resourceVersion'])
+        xml.setElementValue(versionElement, 'gco:CharacterString', record['resource_version'])
+    else:
+        xml.cutElement(root, parentXPaths['resourceVersion'])
 
     # - Progress
+    if 'progress' in record:
+        setProgressCode = True
+        progressElement = xml.getElement(root, parentXPaths['progressCode'])
+        xml.setTextOrMarkMissing(progressElement, record['progress'], setProgressCode)
+    else:
+        xml.cutElement(root, parentXPaths['resourceVersion'])
 
     # - Resource Format
 
