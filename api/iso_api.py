@@ -42,8 +42,11 @@ parentXPaths = {
      'alternateTitle'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:alternateTitle',
      'resourceVersion'     : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:edition',
      'progressCode'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode',
-     'distributor'         : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty',
-     'softwareLanguage'    : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:environmentDescription',
+     'resourceFormat'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceFormat',
+     'softwareLanguage'    : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:environmentDescription/gco:CharacterString',
+     'additionalInfo'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:supplementalInformation',
+     'distributor'         : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor',
+     'distributionFormat'  : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat',
      'assetSize'           : '/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions',
 } 
 
@@ -72,18 +75,18 @@ def transformDSETToISO(record, pathToTemplateFileISO):
 
 def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, record):
 
-    # - Metadata Record ID
+    # - Metadata Record ID: not repeatable
     xml.setElementValue(root, parentXPaths['fileIdentifier'], record['metadata_id'])
 
-    # - ISO Asset Type (default value: dataset)
+    # - ISO Asset Type (default value: dataset): not repeatable
     if record['asset_type']:
         xml.setElementValue(root, parentXPaths['assetType'], record['asset_type'], True)
 
-    # - Metadata Point of Contact
+    # - Metadata Point of Contact: not repeatable
     element = xml.getElement(root, parentXPaths['metadataContact'])
     iso.modifyContactData(element, record['metadata_contact'], 'pointOfContact')
 
-    # - Metadata Date: Use current time if not present in the record. 
+    # - Metadata Date (not repeatable): Use current time if not present in the record. 
     if 'metadata_date' in record:
         xml.setElementValue(root, parentXPaths['metadataDate'], record['metadata_date'])
     else:
@@ -91,13 +94,13 @@ def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, r
         xml.setElementValue(root, parentXPaths['metadataDate'], currentTime)
 
 
-    # - Landing Page
+    # - Landing Page: not repeatable
     xml.setElementValue(root, parentXPaths['landingPage'], record['landing_page'])
 
-    # - Title
+    # - Title: not repeatable
     xml.setElementValue(root, parentXPaths['title'], record['title'])
 
-    # - Publication Date
+    # - Publication Date: not repeatable
     xml.setElementValue(root, parentXPaths['publicationDate'], record['publication_date'])
 
     # - Author
@@ -108,20 +111,20 @@ def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, r
     # - Publisher
     iso.appendContactData(citedContactParent, emptyContactElement, record['publisher'], 'publisher')
 
-    # - Abstract
+    # - Abstract: not repeatable
     xml.setElementValue(root, parentXPaths['abstract'], record['abstract'])
 
     # - Resource Support Contact
     element = xml.getElement(root, parentXPaths['supportContact'])
     iso.modifyContactData(element, record['resource_support'], 'pointOfContact')
 
-    # - DataCite Resource Type
+    # - DataCite Resource Type: not repeatable
     xml.setElementValue(root, parentXPaths['resourceType'], record['resource_type'])
 
-    # - Legal Constraints
+    # - Legal Constraints: not repeatable
     xml.setElementValue(root, parentXPaths['legalConstraints'], record['legal_constraints'])
 
-    # - Access Constraints
+    # - Access Constraints: not repeatable
     xml.setElementValue(root, parentXPaths['accessConstraints'], record['access_constraints'])
 
 
@@ -133,25 +136,25 @@ def transformDSETRequiredFields(root, emptyContactElement, citedContactParent, r
     #############################
 def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent, record):
 
-    # - Other Responsible Individual/Organization
+    # - Other Responsible Individual/Organization: repeatable
     if 'other_responsible_party' in record:
         parties = record['other_responsible_party']
         for party in parties:
             iso.appendContactData(citedContactParent, emptyContactElement, party)
 
-    # - Citation
+    # - Citation: not repeatable
     if 'citation' in record:
         element = xml.getElement(root, parentXPaths['citation'])
         xml.setTextOrMarkMissing(element, record['citation'])
 
-    # - Science Support Contact
+    # - Science Support Contact: repeatable
     if 'science_support' in record:
         parties = record['science_support']
         for party in parties:
             elementCopy = xml.getElement(root, parentXPaths['supportContact'], True)
             iso.modifyContactData(elementCopy, party, 'principalInvestigator')
 
-    # - Keywords
+    # - Keywords: repeatable
     if 'keywords' in record:
         keywordElement, keywordParent = xml.cutElement(root, parentXPaths['keyword'])
         iso.addKeywords(keywordElement, keywordParent, record['keywords'])
@@ -160,7 +163,7 @@ def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent
     
     # - Reference System:  potentially very complex, not shown in DASH Search, not included at this point.
 
-    # - Spatial Representation
+    # - Spatial Representation: repeatable
     if 'spatial_representation' in record:
         childXPath = 'gmd:MD_SpatialRepresentationTypeCode'
         valueList = record['spatial_representation']
@@ -169,13 +172,13 @@ def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent
     else:
         xml.cutElement(root, parentXPaths['spatialRepType'])
 
-    # - Spatial Resolution (harvest error if left unfilled)
+    # - Spatial Resolution: repeatable
     if 'spatial_resolution' in record:
         iso.addSpatialResolutionDistances(root, parentXPaths['spatialResolution'], record['spatial_resolution'])
     else:
         xml.cutElement(root, parentXPaths['spatialResolution'])
 
-    # - ISO Topic Category
+    # - ISO Topic Category: repeatable
     if 'topic_category' in record:
         childXPath = 'gmd:MD_TopicCategoryCode'
         valueList = record['topic_category']
@@ -183,21 +186,21 @@ def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent
     else:
         xml.cutElement(root, parentXPaths['topicCategory'])
 
-    # - GeoLocation
+    # - GeoLocation: not repeatable
     if 'geolocation' in record:
         bboxElement = xml.getElement(root, parentXPaths['geoExtent'])
         iso.modifyBoundingBox(bboxElement, record['geolocation'])
     else:
         xml.cutElement(root, parentXPaths['geoExtent'])
 
-    # - Temporal Coverage
+    # - Temporal Coverage: not repeatable
     if 'temporal_coverage' in record:
         extentElement = xml.getElement(root, parentXPaths['temporalExtent'])
         iso.modifyTemporalExtent(extentElement, record['temporal_coverage'])
     else:
         xml.cutElement(root, parentXPaths['temporalExtent'])
 
-    # - Temporal Resolution
+    # - Temporal Resolution: not repeatable
     if 'temporal_resolution' in record:
         xml.setElementValue(root, parentXPaths['temporalResolution'], record['temporal_resolution'])
 
@@ -209,7 +212,7 @@ def transformDSETRecommendedFields(root, emptyContactElement, citedContactParent
 def transformDSETOptionalFields(root, record):
 
     # //OPTIONAL FIELDS
-    # - Related Link Identifier
+    # - Related Link: repeatable
     if 'related_link' in record:
         emptyLinkElement, parent, originalIndex = xml.cutElement(root, parentXPaths['relatedLink'], True)
         indexCounter = 0
@@ -219,13 +222,13 @@ def transformDSETOptionalFields(root, record):
             name = link['name']
             url = link['linkage']
             description = link['description']
-            iso.modifyOnlineResource(onlineResourceChild, name, url, description)
+            iso.modifyOnlineResource(onlineResourceChild, url, name, description)
             parent.insert(originalIndex + indexCounter, elementCopy)
             indexCounter += 1
     else:
         xml.cutElement(root, parentXPaths['relatedLink'])
 
-    # - Alternate Identifier
+    # - Alternate Identifier: repeatable
     if 'alternate_identifier' in record:
         emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['alternateTitle'], True)
         indexCounter = 0
@@ -237,14 +240,14 @@ def transformDSETOptionalFields(root, record):
     else:
         xml.cutElement(root, parentXPaths['alternateTitle'])
 
-    # - Resource Version
+    # - Resource Version: not repeatable
     if 'resource_version' in record:
         versionElement = xml.getElement(root, parentXPaths['resourceVersion'])
         xml.setElementValue(versionElement, 'gco:CharacterString', record['resource_version'])
     else:
         xml.cutElement(root, parentXPaths['resourceVersion'])
 
-    # - Progress
+    # - Progress: not repeatable
     if 'progress' in record:
         setProgressCode = True
         progressElement = xml.getElement(root, parentXPaths['progressCode'])
@@ -252,20 +255,62 @@ def transformDSETOptionalFields(root, record):
     else:
         xml.cutElement(root, parentXPaths['resourceVersion'])
 
-    # - Resource Format
+    # - Resource Format: repeatable
+    if 'resource_format' in record:
+        emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['resourceFormat'], True)
+        indexCounter = 0
+        for format in record['resource_format']:
+            elementCopy = xml.copyElement(emptyElement)
+            xml.setElementValue(elementCopy, 'gmd:MD_Format/gmd:name/gco:CharacterString', format['name'])
+            # "format" entry is optional
+            xml.setElementValue(elementCopy, 'gmd:MD_Format/gmd:version/gco:CharacterString', format.get('version', []))
+            parent.insert(originalIndex + indexCounter, elementCopy)
+            indexCounter += 1
+    else:
+        xml.cutElement(root, parentXPaths['resourceFormat'])
 
-    # - Software Implementation Language
+    # - Software Implementation Language: not repeatable
+    if 'software_implementation_language' in record:
+        languageElement = xml.getElement(root, parentXPaths['softwareLanguage'])
+        xml.setTextOrMarkMissing(languageElement, record['software_implementation_language'])
+    else:
+        xml.cutElement(root, parentXPaths['softwareLanguage'])
 
-    # - Additional Information
+    # - Additional Information: not repeatable
+    if 'additional_information' in record:
+        informationElement = xml.getElement(root, parentXPaths['additionalInfo'])
+        xml.setElementValue(informationElement, 'gco:CharacterString', record['additional_information'])
+    else:
+        xml.cutElement(root, parentXPaths['additionalInfo'])
 
-    # - Distributor
+    # - Distributor: not repeatable
+    if 'distributor' in record:
+        distributorElement = xml.getElement(root, parentXPaths['distributor'])
+        contactElement = xml.getElement(distributorElement, 'gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty')
+        iso.modifyContactData(contactElement, record['distributor'], 'distributor')
+    else:
+        xml.cutElement(root, parentXPaths['distributor'])
 
-    # - Distribution Format
+    # - Distribution Format: repeatable
+    if 'distribution_format' in record:
+        emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['distributionFormat'], True)
+        indexCounter = 0
+        for format in record['distribution_format']:
+            elementCopy = xml.copyElement(emptyElement)
+            xml.setElementValue(elementCopy, 'gmd:MD_Format/gmd:name/gco:CharacterString', format)
+            parent.insert(originalIndex + indexCounter, elementCopy)
+            indexCounter += 1
+    else:
+        xml.cutElement(root, parentXPaths['distributionFormat'])
 
-    # - Asset Size
-    xml.cutElement(root, parentXPaths['assetSize'])
+    # - Asset Size: not repeatable
+    if 'asset_size_MB' in record:
+        sizeElement = xml.getElement(root, parentXPaths['assetSize'])
+        xml.setElementValue(sizeElement, 'gmd:MD_DigitalTransferOptions/gmd:transferSize/gco:Real', record['asset_size_MB'])
+    else:
+        xml.cutElement(root, parentXPaths['assetSize'])
 
-    # - Author Identifier
+    # - Author Identifier: currently not well defined for "old ISO".
 
     return root
 
@@ -286,9 +331,6 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
 
     # Put resourceTypeGeneral in hierarchyLevelName
     if record.has_key("resourceTypeGeneral"):
-        #hierarchyLevelName = xml.getElement(root, './/gmd:hierarchyLevelName/gco:CharacterString')
-        #hierarchyLevelName.text = record["resourceTypeGeneral"]
-        # - DataCite Resource Type
         xml.setElementValue(root, parentXPaths['resourceType'], record['resourceTypeGeneral'])
 
     # Put title in title
@@ -320,13 +362,6 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
 
     # Add "subject" keywords.  Fill existing element first, then create copies.
     if record.has_key("subject"):
-        #     subjectList = record["subject"]
-        #     for i in range(len(subjectList)):
-        #         keyword = xml.getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', i > 0)
-        #         keyword[0].text = subjectList[i]
-        # else:
-        #     keyword = xml.getElement(root, './/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword', False)
-        #     keyword.getparent().remove(keyword)
         keywordElement, keywordParent = xml.cutElement(root, parentXPaths['keyword'])
         iso.addKeywords(keywordElement, keywordParent, record['subject'])
 
@@ -349,9 +384,6 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
             # Insert Resource Support Contact
             element = xml.getElement(root, parentXPaths['supportContact'])
             iso.modifyContactData(element, {"name": name}, 'pointOfContact')
-            # Insert Metadata Contact
-            #element = xml.getElement(root, parentXPaths['metadataContact'])
-            #iso.modifyContactData(element, {"name": name}, 'pointOfContact')
         else:
             iso.appendContactData(contactParent, emptyContactElement, {"name": name}, roleISO)
 

@@ -92,7 +92,7 @@ def copyElement(element):
 
 
 def setTextOrMarkMissing(element, fillText, setCodeListValue = False):
-    if len(fillText) > 0:
+    if len and len(fillText) > 0:
         element.text = fillText
     else:
         element.getparent().attrib['{http://www.isotc211.org/2005/gco}nilReason'] = "missing"
