@@ -8,6 +8,7 @@ import argparse
 import sys
 import os.path
 
+PROGRAM_VERSION = 'Version: 0.1.0'
 
 PROGRAM_DESCRIPTION = '''
 
@@ -43,7 +44,8 @@ def checkDirectoryExistence(directoryPath, directoryType):
 #
 #  Parse and validate command line options.
 #
-parser = PrintHelpOnErrorParser(description=PROGRAM_DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter)
+programHelp = PROGRAM_DESCRIPTION + PROGRAM_VERSION
+parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument("--inputDir", nargs=1, help="base directory for input records")
 parser.add_argument("--outputDir", nargs=1, help="base directory for output records")
@@ -96,6 +98,7 @@ else:
             inputText = "".join(inputText)
         jsonData = dset.getJSONData(inputText)
 
+        print("  Translating file: " + inputFile)
         isoText = iso.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
 
         outputFile = dset.prepareOutputFile(inputFile, inputDir, outputDir)
