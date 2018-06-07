@@ -8,7 +8,8 @@ import argparse
 import sys
 import os.path
 
-PROGRAM_VERSION = 'Version: 0.1.0'
+__version_info__ = ('2018','06','07')
+__version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''
 
@@ -19,14 +20,15 @@ Here are some working examples showing the two main uses of this program:
 
   * Convert a single DSET metadata record using STDIN and STDOUT:
 
-       python json2iso.py  < defaultInputRecords/test_dset_full.txt  > test_dset_full.xml
+       python dset2iso.py  < defaultInputRecords/test_dset_full.txt  > test_dset_full.xml
 
 
   * Perform batch DSET metadata record processing:
 
        python dset2iso.py --inputDir ./defaultInputRecords --outputDir ./defaultOutputRecords
 
-'''
+
+Program Version: '''
 
 class PrintHelpOnErrorParser(argparse.ArgumentParser):
     def error(self, message):
@@ -44,11 +46,12 @@ def checkDirectoryExistence(directoryPath, directoryType):
 #
 #  Parse and validate command line options.
 #
-programHelp = PROGRAM_DESCRIPTION + PROGRAM_VERSION
+programHelp = PROGRAM_DESCRIPTION + __version__
 parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument("--inputDir", nargs=1, help="base directory for input records")
-parser.add_argument("--outputDir", nargs=1, help="base directory for output records")
+parser.add_argument('--inputDir', nargs=1, help="base directory for input records")
+parser.add_argument('--outputDir', nargs=1, help="base directory for output records")
+parser.add_argument('--version', action='version', version="%(prog)s ("+__version__+")")
 args = parser.parse_args()
 
 # Require that --input-dir and --output-dir both be used if either is used.
