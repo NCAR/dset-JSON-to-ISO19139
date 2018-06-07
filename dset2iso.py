@@ -66,8 +66,9 @@ if not readSTDIN:
 
 
 
-import api.json_dset as dset
-import api.iso_api as iso
+import api.input.dset as dset_input
+import api.translate.dset as dset_translate
+import api.output.dset as dset_output
 
 import pprint
 
@@ -83,28 +84,28 @@ if readSTDIN:
     inputText = sys.stdin.readlines()
     inputText = "".join(inputText)
 
-    jsonData = dset.getJSONData(inputText)
+    jsonData = dset_input.getJSONData(inputText)
     #pprint.pprint(jsonData)
 
-    isoText = iso.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
+    isoText = dset_translate.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
     print(isoText)
 
 else:
     inputDir = args.inputDir[0]
     outputDir = args.outputDir[0]
     print inputDir
-    jsonFiles = dset.getJSONFileNames(inputDir)
+    jsonFiles = dset_input.getJSONFileNames(inputDir)
     print("Found " + str(len(jsonFiles)) + " input files.")
     for inputFile in jsonFiles:
         with open(inputFile, 'r') as myfile:
             inputText = myfile.readlines()
             inputText = "".join(inputText)
-        jsonData = dset.getJSONData(inputText)
+        jsonData = dset_input.getJSONData(inputText)
 
         print("  Translating file: " + inputFile)
-        isoText = iso.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
+        isoText = dset_translate.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
 
-        outputFile = dset.prepareOutputFile(inputFile, inputDir, outputDir)
+        outputFile = dset_output.prepareOutputFile(inputFile, inputDir, outputDir)
         print(inputFile + " -> " + outputFile)
 
         file = open(outputFile, 'w')

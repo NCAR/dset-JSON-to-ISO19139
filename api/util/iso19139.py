@@ -2,7 +2,7 @@
 #  Code for modifying subelements in a ISO 19139 XML file.
 #
 
-import xml_util as xml
+import api.util.xml as xml
 
 # Debug
 import logging

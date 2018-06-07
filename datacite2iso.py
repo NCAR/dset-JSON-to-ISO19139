@@ -6,7 +6,11 @@ import argparse
 import sys
 import os.path
 
-import api.datacite_input as datacite
+import api.input.datacite as input_json
+import api.translate.datacite as translate
+
+__version_info__ = ('2018','06','07')
+__version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''
 
@@ -18,7 +22,7 @@ Example usage:
 
        python datacite2iso.py --doi 10.5065/D6WD3XH5   > test_datacite.xml
 
-'''
+Program Version: '''
 
 class PrintHelpOnErrorParser(argparse.ArgumentParser):
     def error(self, message):
@@ -43,8 +47,10 @@ def getTemplateFile(templateArg):
 #
 #  Parse the command line options.
 #
-parser = PrintHelpOnErrorParser(description=PROGRAM_DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter)
+programHelp = PROGRAM_DESCRIPTION + __version__
+parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--template", nargs=1, help="custom ISO template to use from the 'templates' folder")
+parser.add_argument('--version', action='version', version="%(prog)s ("+__version__+")")
 
 requiredArgs = parser.add_argument_group('required arguments')
 requiredArgs.add_argument("--doi", nargs=1, required=True, help="Digital Object Identifier (DOI)")
@@ -53,7 +59,7 @@ args = parser.parse_args()
 
 
 doi = args.doi[0]
-records = datacite.getDataCiteRecords(doi)
+records = input_json.getDataCiteRecords(doi)
 
 templateFile = getTemplateFile(args.template)
 if not os.path.isfile(templateFile):
@@ -65,7 +71,8 @@ if not os.path.isfile(templateFile):
 #
 if len(records) > 0:
     record = records[0]
-    output = datacite.translateDataCiteRecord(record, templateFile)
+    output = translate.translateDataCiteRecord(record, templateFile)
     print(output)
 else:
     print("DOI " + doi + " was not found.\n")
+
