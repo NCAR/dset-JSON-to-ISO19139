@@ -75,6 +75,7 @@ Once Anaconda is installed, you should be able to run the Anaconda equivalent of
 
 * Type these commands:
 
+
      source ~/pythondev/bin/activate
      mv <zip_file> <install_directory>
      cd <install_directory>
