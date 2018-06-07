@@ -22,7 +22,7 @@ These are the package versions that have been tested:
 
 ### Prerequisites 
 
-You must be on a machine with python installed, where the python "virtualenv" command is available.  This command is needed to create a python environment where you can install the python libraries lxml, simplejson, and requests.
+You must be on a machine with python installed, where the python "virtualenv" command is available.  This command is needed to create a python environment where you can install several python library dependencies.
 
 #### Linux
 On most versions of Linux, the "virtualenv" command should be available already.  If not, then the commands
@@ -69,9 +69,9 @@ Once Anaconda is installed, you should be able to run the Anaconda equivalent of
 
 ### Install Software in your Python Development Environment
 
-1.  Navigate in your browser to https://github.com/NCAR/dset-JSON-to-ISO19139 and click the green "Clone or Download" button.   Download the zip file, which may be named "" or "master.zip".
-2.  Decide where you want the software to reside in your user space.  You should not need administrative privileges to install.   You only need read/write privileges in the folder where you want the software to reside.
-3.  Type these commands:
+* Navigate in your browser to https://github.com/NCAR/dset-JSON-to-ISO19139 and click the green "Clone or Download" button.   Download the zip file, which may be named "" or "master.zip".
+* Decide where you want the software to reside in your user space.  You should not need administrative privileges to install.   You only need read/write privileges in the folder where you want the software to reside.
+* Type these commands:
 
      source ~/pythondev/bin/activate
      mv <zip_file> <install_directory>
@@ -80,6 +80,6 @@ Once Anaconda is installed, you should be able to run the Anaconda equivalent of
      cd dset-JSON-to-ISO19139-master
      pip install -r ./requirements.txt
       
-Your software should be ready to use.   To test that your installation works correctly, the following command should run without errors appearing: 
+Your software should be ready to use.   To test that your installation works correctly, the following command should run without producing errors: 
 
      python dset2iso.py  < defaultInputRecords/test_dset_full.txt  > test_dset_full.xml
