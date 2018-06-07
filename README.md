@@ -39,7 +39,7 @@ libxslt-devel
 
 Install them with this command: 
 
-    sudo yum install libxml2-devel libxslt-devel
+     sudo yum install libxml2-devel libxslt-devel
 
 Then create your python development environment with these commands: 
 
@@ -70,7 +70,9 @@ Once Anaconda is installed, you should be able to run the Anaconda equivalent of
 ### Install Software in your Python Development Environment
 
 * Navigate in your browser to https://github.com/NCAR/dset-JSON-to-ISO19139 and click the green "Clone or Download" button.   Download the zip file, which may be named "" or "master.zip".
+
 * Decide where you want the software to reside in your user space.  You should not need administrative privileges to install.   You only need read/write privileges in the folder where you want the software to reside.
+
 * Type these commands:
 
      source ~/pythondev/bin/activate
