@@ -82,6 +82,6 @@ Then type these commands:
      cd dset-JSON-to-ISO19139-master
      pip install -r ./requirements.txt
       
-Your software should be ready to use.   To test that your installation works correctly, the following command should run without producing errors: 
+If the final install command completes without errors, the translator should be ready to use.   To test that your installation works correctly, the following command should run without producing errors: 
 
      python dset2iso.py  < defaultInputRecords/test_dset_full.txt  > test_dset_full.xml
