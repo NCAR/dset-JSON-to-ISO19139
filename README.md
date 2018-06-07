@@ -43,8 +43,8 @@ Install them with this command:
 
 Then create your python development environment with these commands: 
 
-cd
-virtualenv pythondev
+     cd
+     virtualenv pythondev
 
 #### Mac OSX
 For Mac OSX, the "virtualenv" command is not available in the default software environment.   If you wish to run on Mac OSX, you have two main courses of action: 
