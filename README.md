@@ -73,8 +73,7 @@ Once Anaconda is installed, you should be able to run the Anaconda equivalent of
 
 * Decide where you want the software to reside in your user space.  You should not need administrative privileges to install.   You only need read/write privileges in the folder where you want the software to reside.
 
-* Type these commands:
-
+Then type these commands:
 
      source ~/pythondev/bin/activate
      mv <zip_file> <install_directory>
