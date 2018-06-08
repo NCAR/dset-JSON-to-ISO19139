@@ -66,9 +66,9 @@ if not readSTDIN:
 
 
 
-import api.input.dset as dset_input
+import api.inputjson as dset_input
 import api.translate.dset as dset_translate
-import api.output.dset as dset_output
+import api.output as dset_output
 
 import pprint
 

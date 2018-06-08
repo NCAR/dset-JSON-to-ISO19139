@@ -6,7 +6,7 @@ import argparse
 import sys
 import os.path
 
-import api.input.datacite as input_json
+import api.inputjson as input_json
 import api.translate.datacite as translate
 
 __version_info__ = ('2018','06','07')

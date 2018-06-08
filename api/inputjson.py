@@ -1,17 +1,32 @@
-#
-#  Functions for pulling DataCite records and converting them to JSON.
-#
 
-import urllib2
+
+import os.path
 import json
+import urllib2
 
 
-
+#
+#  Functions for finding and loading text files containing DSET JSON.
+#
 def getJSONData(jsonText):
     """ Transform a text version of JSON data into a python dictionary. """
     jsonData = json.loads(jsonText)
     return jsonData
 
+
+def getJSONFileNames(dirPath):
+    """ Return a list of paths to files containing JSON records, found by recursive search in a given directory. """
+    jsonExtension = '.txt'
+    matches = []
+    for root, dirnames, filenames in os.walk(dirPath):
+        for filename in filenames:
+            if filename.endswith(jsonExtension):
+                matches.append(os.path.join(root, filename))
+    return matches
+
+#
+#  Functions for pulling DataCite records and converting them to JSON.
+#
 
 def getDataCiteRecords(doi=None):
     """ Return a list of JSON records obtained from the DataCite DOI website. """
