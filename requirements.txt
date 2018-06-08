@@ -1,3 +1,2 @@
 # Required python packages for running translator code
 lxml==4.2.1
-simplejson==3.15.0

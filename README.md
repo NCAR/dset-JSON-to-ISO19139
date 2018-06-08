@@ -11,12 +11,10 @@ These scripts assume python 2.7 is being used; using python 3 is untested.
 The following python packages are required.
 
 * lxml 
-* simplejson
 
 These are the package versions that have been tested: 
 
 * lxml>=3.6.0
-* simplejson>=3.8.2
 
 ## Installation Instructions
 
@@ -32,10 +30,7 @@ On most versions of Linux, the "virtualenv" command should be available already.
 
 should provide the "virtualenv" command.
 
-You will also need to make sure these two system packages are installed: 
-
-libxml2-devel
-libxslt-devel
+You will also need to make sure these two system packages are installed: libxml2-devel and libxslt-devel.
 
 Install them with this command: 
 

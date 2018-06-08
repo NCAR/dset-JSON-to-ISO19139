@@ -1,3 +1,5 @@
+import os.path
+
 def prepareOutputFile(inputFile, inputDir, outputDir):
     outputFile = inputFile.replace(inputDir,outputDir,1)
     outputFile = os.path.splitext(outputFile)[0] + '.xml'

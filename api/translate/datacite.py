@@ -130,7 +130,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Add relatedIdentifier as online resource if it is a URL
     relatedIdentifierList = record.get("relatedIdentifier", [])
     for relatedIdentifier in relatedIdentifierList:
-        namePart, typePart, urlPart = datacite.getRelatedIdentifierParts(relatedIdentifier)
+        namePart, typePart, urlPart = getRelatedIdentifierParts(relatedIdentifier)
         if typePart == "URL":
             online = xml.getElement(root, parentXPaths['relatedLink'], True)
             iso.modifyOnlineResource(online, urlPart, namePart)
@@ -172,3 +172,14 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Return ISO record and record identifier
     recordAsISO = xml.toString(root)
     return recordAsISO, record["doi"]
+
+
+
+def getRelatedIdentifierParts(relatedIdentifier):
+    """ Return the parts of a DataCite relatedIdentifier object. """
+    relatedIdentifierParts = relatedIdentifier.split(":")
+    namePart = "Related Resource: " + relatedIdentifierParts[0]
+    typePart = relatedIdentifierParts[1]
+    urlPart = ':'.join(relatedIdentifierParts[2: ])
+    return namePart, typePart, urlPart
+

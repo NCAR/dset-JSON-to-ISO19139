@@ -69,7 +69,7 @@ def transformOptionalFields(root, record):
         for format in record['resource_format']:
             elementCopy = xml.copyElement(emptyElement)
             xml.setElementValue(elementCopy, 'gmd:MD_Format/gmd:name/gco:CharacterString', format['name'])
-            # "format" entry is optional
+            # "version" entry is optional
             xml.setElementValue(elementCopy, 'gmd:MD_Format/gmd:version/gco:CharacterString', format.get('version', []))
             parent.insert(originalIndex + indexCounter, elementCopy)
             indexCounter += 1

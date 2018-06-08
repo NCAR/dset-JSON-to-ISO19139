@@ -2,6 +2,7 @@
 # Utilities for inserting values into ISO 19139 documents
 #
 
+import numbers
 from lxml import etree as ElementTree       # ISO XML parser
 from copy import deepcopy                   # Allows deep copy of ISO elements
 
@@ -92,7 +93,9 @@ def copyElement(element):
 
 
 def setTextOrMarkMissing(element, fillText, setCodeListValue = False):
-    if len and len(fillText) > 0:
+    if isinstance(fillText, numbers.Real):
+        fillText = str(fillText)
+    if len(fillText) > 0:
         element.text = fillText
     else:
         element.getparent().attrib['{http://www.isotc211.org/2005/gco}nilReason'] = "missing"

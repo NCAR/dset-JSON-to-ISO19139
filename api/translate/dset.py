@@ -8,7 +8,7 @@ from api.translate.dset_tiers.optional    import transformOptionalFields
 import api.util.xml as xml
 
 parentXPaths = {
-     'citedContact'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty',
+    'citedContact': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty',
 }
 
 def transformDSETToISO(record, pathToTemplateFileISO):
