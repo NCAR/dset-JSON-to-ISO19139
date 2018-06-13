@@ -22,71 +22,71 @@ parentXPaths = {
 def transformRecommendedFields(root, emptyContactElement, citedContactParent, record):
 
     # - Other Responsible Individual/Organization: repeatable
-    if 'other_responsible_party' in record:
+    if record.has_key('other_responsible_party'):
         parties = record['other_responsible_party']
         for party in parties:
             iso.appendContactData(citedContactParent, emptyContactElement, party)
 
     # - Citation: not repeatable
-    if 'citation' in record:
-        element = xml.getElement(root, parentXPaths['citation'])
-        xml.setTextOrMarkMissing(element, record['citation'])
+    if record.has_key('citation'):
+        element = xml.setElementValue(root, parentXPaths['citation'], record['citation'])
 
     # - Science Support Contact: repeatable
-    if 'science_support' in record:
-        parties = record['science_support']
-        for party in parties:
-            elementCopy = xml.getElement(root, parentXPaths['supportContact'], True)
+    # Note: data for Resource Support Contact information was inserted, so we must preserve existing elements.
+    if record.has_key('science_support'):
+        supportElement, supportParent, originalIndex = xml.cutElement(root, parentXPaths['supportContact'], True)
+        supportParent.insert(originalIndex, supportElement)
+        insertCounter = 1
+        for party in record['science_support']:
+            elementCopy = xml.copyElement(supportElement)
             iso.modifyContactData(elementCopy, party, 'principalInvestigator')
+            supportParent.insert(originalIndex + insertCounter, elementCopy)
+            insertCounter += 1
+
 
     # - Keywords: repeatable
-    if 'keywords' in record:
-        keywordElement, keywordParent = xml.cutElement(root, parentXPaths['keyword'])
-        iso.addKeywords(keywordElement, keywordParent, record['keywords'])
+    if record.has_key('keywords'):
+        iso.addKeywords(root, parentXPaths['keyword'], record['keywords'])
 
     # - Keyword Vocabulary:   Not included at this point.
     
     # - Reference System:  potentially very complex, not shown in DASH Search, not included at this point.
 
     # - Spatial Representation: repeatable
-    if 'spatial_representation' in record:
+    if record.has_key('spatial_representation'):
         childXPath = 'gmd:MD_SpatialRepresentationTypeCode'
-        valueList = record['spatial_representation']
         setCodeList = True
-        xml.addChildList(root, parentXPaths['spatialRepType'], childXPath, valueList, setCodeList)
+        xml.addChildList(root, parentXPaths['spatialRepType'], childXPath, record['spatial_representation'], setCodeList)
     else:
         xml.cutElement(root, parentXPaths['spatialRepType'])
 
     # - Spatial Resolution: repeatable
-    if 'spatial_resolution' in record:
+    if record.has_key('spatial_resolution'):
         iso.addSpatialResolutionDistances(root, parentXPaths['spatialResolution'], record['spatial_resolution'])
     else:
         xml.cutElement(root, parentXPaths['spatialResolution'])
 
     # - ISO Topic Category: repeatable
-    if 'topic_category' in record:
+    if record.has_key('topic_category'):
         childXPath = 'gmd:MD_TopicCategoryCode'
-        valueList = record['topic_category']
-        xml.addChildList(root, parentXPaths['topicCategory'], childXPath, valueList)
+        xml.addChildList(root, parentXPaths['topicCategory'], childXPath, record['topic_category'])
     else:
         xml.cutElement(root, parentXPaths['topicCategory'])
 
     # - GeoLocation: not repeatable
-    if 'geolocation' in record:
-        bboxElement = xml.getElement(root, parentXPaths['geoExtent'])
-        iso.modifyBoundingBox(bboxElement, record['geolocation'])
+    if record.has_key('geolocation'):
+        iso.modifyBoundingBox(root, parentXPaths['geoExtent'], record['geolocation'])
     else:
         xml.cutElement(root, parentXPaths['geoExtent'])
 
     # - Temporal Coverage: not repeatable
-    if 'temporal_coverage' in record:
-        extentElement = xml.getElement(root, parentXPaths['temporalExtent'])
-        iso.modifyTemporalExtent(extentElement, record['temporal_coverage'])
+    if record.has_key('temporal_coverage'):
+        iso.modifyTemporalExtent(root, parentXPaths['temporalExtent'], record['temporal_coverage'])
     else:
         xml.cutElement(root, parentXPaths['temporalExtent'])
 
     # - Temporal Resolution: not repeatable
-    if 'temporal_resolution' in record:
+    if record.has_key('temporal_resolution'):
         xml.setElementValue(root, parentXPaths['temporalResolution'], record['temporal_resolution'])
 
     # - Vertical Extent: potentially very complicated in ISO 19139; not included at this point. 

@@ -34,44 +34,37 @@ def toString(xml_tree):
 #
 # XML Element Query operations
 #
-
-# Return first item in a list if list is nonempty (returns None otherwise).
-def getFirst(someList): 
+def getFirst(someList):
+    ''' Return first item in a list if list is nonempty (returns None otherwise). '''
     if someList:
         return someList[0]
-    else:
-        log.debug('Found empty list!')
+    return None
 
+def getLast(someList): 
+    ''' Return last item in a list if list is nonempty (returns None otherwise). '''
+    if someList:
+        return someList[-1]
+    return None
 
-# Search XML element tree and return the first matching element
-# If createCopy is true, append a copy of the element to the parent element. 
-def getElement(baseElement, elementPath, createCopy=False):
+def getElement(baseElement, elementPath):
+    ''' Search XML element tree and return the first matching element '''
     elements = baseElement.xpath(elementPath, namespaces=XML_NAMESPACE_MAP)
     element = getFirst(elements)
-    try:
-        assert element != None
-    except AssertionError:
-        print "Failed to find any element matching: " + elementPath
+    assert element != None
+    return element
 
-    if createCopy:
-        elementCopy = deepcopy(element)
-        parent = element.getparent()
-        insertIndex = parent.index(element)+1
-        parent.insert(insertIndex, elementCopy)
-        element = elementCopy
+def getLastElement(baseElement, elementPath):
+    ''' Search XML element tree and return the first matching element '''
+    elements = baseElement.xpath(elementPath, namespaces=XML_NAMESPACE_MAP)
+    element = getLast(elements)
+    assert element != None
     return element
 
 
-# Search XML element tree and cut the first matching element.
-# Return the cut element and the parent it was cut from.
-#
 def cutElement(baseElement, elementPath, returnIndex = False):
+    ''' Search XML element tree and cut the first matching element. '''
     elements = baseElement.xpath(elementPath, namespaces=XML_NAMESPACE_MAP)
     element = getFirst(elements)
-    try:
-        assert element != None
-    except AssertionError:
-        print "Failed to find any element matching: " + elementPath
 
     parent = element.getparent()
     elementIndex = parent.index(element)
@@ -83,14 +76,13 @@ def cutElement(baseElement, elementPath, returnIndex = False):
         return element, parent
 
 def copyElement(element):
+    ''' Create a deep copy of some XML element. '''
     elementCopy = deepcopy(element)
     return elementCopy
 
 #
 # XML Element Modify operations
 #
-
-
 
 def setTextOrMarkMissing(element, fillText, setCodeListValue = False):
     if isinstance(fillText, numbers.Real):
@@ -112,7 +104,6 @@ def setElementValue(xmlTreeRoot, xPath, value, setCodeListValue = False):
 #
 # XML Element Insert operations
 #
-
 
 def addChildList(xml_root, elementXPath, childXPath, valueList, setCodeListValue = False):
     element = getElement(xml_root, elementXPath)

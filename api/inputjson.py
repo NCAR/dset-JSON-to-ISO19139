@@ -24,6 +24,18 @@ def getJSONFileNames(dirPath):
                 matches.append(os.path.join(root, filename))
     return matches
 
+
+def getTemplateFilePath(templateArgument, defaultTemplate):
+    ''' Return the path to the ISO output template file.'''
+    templateFolder = './templates_ISO19139/'
+
+    if templateArgument:
+        template = templateArgument[0]
+    else:
+        template = defaultTemplate
+
+    templatePath = templateFolder + template
+    return templatePath
 #
 #  Functions for pulling DataCite records and converting them to JSON.
 #

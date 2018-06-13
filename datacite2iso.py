@@ -31,18 +31,6 @@ class PrintHelpOnErrorParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-def getTemplateFile(templateArg):
-    ''' Return the path to the ISO output template file.'''
-    templateFolder = './templates_ISO19139/'
-    defaultTemplate= 'dset_min.xml'
-
-    if templateArg:
-        template = templateArg[0]
-    else:
-        template = defaultTemplate
-
-    templatePath = templateFolder + template
-    return templatePath
 
 #
 #  Parse the command line options.
@@ -58,20 +46,25 @@ requiredArgs.add_argument("--doi", nargs=1, required=True, help="Digital Object 
 args = parser.parse_args()
 
 
+# Check for ISO 19139 template existence.
+DEFAULT_OUTPUT_TEMPLATE= 'dset_min.xml'
+
+templateFilePath = input_json.getTemplateFilePath(args.template, DEFAULT_OUTPUT_TEMPLATE)
+if not os.path.isfile(templateFilePath):
+    message = 'Template file does not exist: %s\n' % templateFilePath
+    parser.error(message)
+
+# Query the specified DOI's metadata JSON record.
 doi = args.doi[0]
 records = input_json.getDataCiteRecords(doi)
 
-templateFile = getTemplateFile(args.template)
-if not os.path.isfile(templateFile):
-    message = 'Template file does not exist: %s\n' % templateFile
-    parser.error(message)
 
 #
 #  Perform the translation.
 #
 if len(records) > 0:
     record = records[0]
-    output = translate.translateDataCiteRecord(record, templateFile)
+    output = translate.translateDataCiteRecord(record, templateFilePath)
     print(output)
 else:
     print("DOI " + doi + " was not found.\n")

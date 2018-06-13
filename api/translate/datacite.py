@@ -43,10 +43,11 @@ parentXPaths = {
      'title'               : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString',
      'publicationDate'     : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date',
      'citedContact'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty',
-     'abstract'            : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString',
+     'abstract'            : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract',
      'supportContact'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact',
      'resourceType'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "Resource Type")]/../../../../gmd:keyword/gco:CharacterString',
      'keyword'             : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../gmd:keyword',
+     'relatedLink'         : '/gmd:MD_Metadata/gmd:metadataExtensionInfo',
      'legalConstraints'    : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useLimitation/gco:CharacterString',
      'accessConstraints'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString',
 }
@@ -98,6 +99,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     root = xml.getXMLTree(templateFileISO)
 
     # Put DOI in fileIdentifier
+    assert record.has_key('doi')
     xml.setElementValue(root, parentXPaths['fileIdentifier'], record['doi'])
 
     # Put current time in dateStamp
@@ -105,20 +107,21 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     xml.setElementValue(root, parentXPaths['metadataDate'], currentTime)
 
     # Put resourceTypeGeneral in hierarchyLevelName
-    if record.has_key("resourceTypeGeneral"):
-        xml.setElementValue(root, parentXPaths['resourceType'], record['resourceTypeGeneral'])
+    assert record.has_key('resourceTypeGeneral')
+    xml.setElementValue(root, parentXPaths['resourceType'], record['resourceTypeGeneral'])
 
     # Put title in title
-    title = xml.getElement(root, './/gmd:CI_Citation/gmd:title/gco:CharacterString')
-    title.text = xml.getFirst( record["title"] )
+    assert record.has_key('title')
+    titleValue = xml.getFirst(record['title'])
+    xml.setElementValue(root, parentXPaths['title'], titleValue)
 
     # Put description in abstract
     if record.has_key("description"):
-        abstract = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString')
-        abstract.text = xml.getFirst( record["description"] )
+        fullXPath = parentXPaths['abstract'] + '/gco:CharacterString'
+        descriptionValue = xml.getFirst(record['description'])
+        xml.setElementValue(root, fullXPath, descriptionValue )
     else:
-        abstract = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString')
-        abstract.getparent().remove(abstract)
+        xml.cutElement(parentXPaths['abstract'])
 
     # Put publicationYear in CI_Citation/date
     xml.setElementValue(root, parentXPaths['publicationDate'], record["publicationYear"])
@@ -129,16 +132,16 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
 
     # Add relatedIdentifier as online resource if it is a URL
     relatedIdentifierList = record.get("relatedIdentifier", [])
+    relatedLinks = []
     for relatedIdentifier in relatedIdentifierList:
         namePart, typePart, urlPart = getRelatedIdentifierParts(relatedIdentifier)
         if typePart == "URL":
-            online = xml.getElement(root, parentXPaths['relatedLink'], True)
-            iso.modifyOnlineResource(online, urlPart, namePart)
+            relatedLinks.append({"name": namePart, "linkage": urlPart, "description": ""})
+    iso.addRelatedLinks(root, parentXPaths['relatedLink'], relatedLinks)
 
     # Add "subject" keywords.  Fill existing element first, then create copies.
     if record.has_key("subject"):
-        keywordElement, keywordParent = xml.cutElement(root, parentXPaths['keyword'])
-        iso.addKeywords(keywordElement, keywordParent, record['subject'])
+        iso.addKeywords(root, parentXPaths['keyword'], record['subject'])
 
     # Cut out the template's citedContact element, so we can paste in multiple copies of it later.
     emptyContactElement, contactParent = xml.cutElement(root, parentXPaths['citedContact'])
@@ -165,9 +168,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Add publisher
     publisher = record.get("publisher", None)
     if publisher:
-        #contact = xml.getElement(root, './/gmd:MD_DataIdentification/gmd:pointOfContact', True)
-        #iso.modifyContact(contact, publisher, "", "publisher")
-        iso.appendContactData(contactParent, emptyContactElement, {"name": publisher}, 'publisher')
+        iso.appendContactData(contactParent, emptyContactElement, {"organization": publisher}, 'publisher')
 
     # Return ISO record and record identifier
     recordAsISO = xml.toString(root)
