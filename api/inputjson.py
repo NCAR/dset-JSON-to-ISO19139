@@ -36,6 +36,7 @@ def getTemplateFilePath(templateArgument, defaultTemplate):
 
     templatePath = templateFolder + template
     return templatePath
+
 #
 #  Functions for pulling DataCite records and converting them to JSON.
 #

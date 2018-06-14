@@ -8,7 +8,7 @@ import argparse
 import sys
 import os.path
 
-__version_info__ = ('2018','06','07')
+__version_info__ = ('2018','06','14')
 __version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''

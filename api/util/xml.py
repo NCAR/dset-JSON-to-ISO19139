@@ -87,10 +87,20 @@ def copyElement(element):
 def setTextOrMarkMissing(element, fillText, setCodeListValue = False):
     if isinstance(fillText, numbers.Real):
         fillText = str(fillText)
-    if len(fillText) > 0:
-        element.text = fillText
-    else:
-        element.getparent().attrib['{http://www.isotc211.org/2005/gco}nilReason'] = "missing"
+    elif fillText is None:
+        fillText = ""
+    element.text = fillText
+
+    # Set or remove "gco:nilReason = missing" attribute from parent element
+    missingAttribute = '{http://www.isotc211.org/2005/gco}nilReason'
+    hasParent = element.getparent() is not None
+    hasParentWithMissing = hasParent and element.getparent().attrib.has_key(missingAttribute)
+    if len(fillText) > 0 and hasParentWithMissing:
+        element.getparent().attrib.pop(missingAttribute)
+    elif len(fillText) == 0 and hasParent:
+        element.getparent().attrib[missingAttribute] = "missing"
+
+    # Also set code list value if specified
     if setCodeListValue:
         element.attrib['codeListValue'] = fillText
 

@@ -9,7 +9,7 @@ import os.path
 import api.inputjson as input_json
 import api.translate.datacite as translate
 
-__version_info__ = ('2018','06','07')
+__version_info__ = ('2018','06','14')
 __version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''

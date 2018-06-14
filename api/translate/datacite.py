@@ -53,7 +53,6 @@ parentXPaths = {
 }
 
 
-
 def translateDataCiteRecords():
     ''' batch translate DataCite Records and save to output directory. '''
 
@@ -81,11 +80,6 @@ def translateDataCiteRecords():
 
 def translateDataCiteRecord(record, templateFile):
     ''' Return ISO 19139 translation for a single DataCite record. '''
-    #try:
-    #    recordISO, recordID = transformDataCiteToISO(record, templateFile, roleMappingDataCiteToISO)
-    #except (KeyError, IndexError):
-    #    print record
-    #    sys.exit()
     recordISO, recordID = transformDataCiteToISO(record, templateFile, roleMappingDataCiteToISO)
 
     headerXML = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -143,32 +137,26 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     if record.has_key("subject"):
         iso.addKeywords(root, parentXPaths['keyword'], record['subject'])
 
-    # Cut out the template's citedContact element, so we can paste in multiple copies of it later.
-    emptyContactElement, contactParent = xml.cutElement(root, parentXPaths['citedContact'])
+    # Create list of cited contacts from three keys: "creator", "publisher", and "contributor".
+    # Also obtain a list of support contacts from "contributor".
+    citedContacts = getAuthors(record)
 
-    # Add creators as authors.  Fill existing element first, then create copies.
-    creatorList = record["creator"]
-    for creator in creatorList:
-        iso.appendContactData(contactParent, emptyContactElement, {"name": creator}, 'author')
+    if record.has_key("publisher"):
+        publisherRecord = {"organization": record["publisher"], "role": "publisher"}
+        citedContacts.append(publisherRecord)
 
-    # Add contributors
-    contributorList = record.get("contributor", [])
-    contributorTypeList = record.get("contributorType", [])
-    for i in range(len(contributorList)):
-        name = contributorList[i]
-        roleDataCite = contributorTypeList[i]
-        roleISO = roleMapping[roleDataCite]
-        if roleISO == 'pointOfContact':
-            # Insert Resource Support Contact
-            element = xml.getElement(root, parentXPaths['supportContact'])
-            iso.modifyContactData(element, {"name": name}, 'pointOfContact')
-        else:
-            iso.appendContactData(contactParent, emptyContactElement, {"name": name}, roleISO)
+    if record.has_key("contributor") and record.has_key("contributorType"):
+        otherContacts, supportContacts = splitContributors(record["contributor"], record["contributorType"], roleMapping)
+        citedContacts.extend(otherContacts)
+    else:
+        supportContacts = []
 
-    # Add publisher
-    publisher = record.get("publisher", None)
-    if publisher:
-        iso.appendContactData(contactParent, emptyContactElement, {"organization": publisher}, 'publisher')
+
+    # Fill in cited contacts.
+    createResponsibleParties(root, parentXPaths['citedContact'], citedContacts)
+
+    # Fill in support contacts.
+    createResponsibleParties(root, parentXPaths['supportContact'], supportContacts)
 
     # Return ISO record and record identifier
     recordAsISO = xml.toString(root)
@@ -183,4 +171,39 @@ def getRelatedIdentifierParts(relatedIdentifier):
     typePart = relatedIdentifierParts[1]
     urlPart = ':'.join(relatedIdentifierParts[2: ])
     return namePart, typePart, urlPart
+
+
+def getAuthors(record):
+    ''' Convert the list of creators into a list of author records. '''
+    creatorList = record["creator"]
+    authorList = [{"name": creator, "role": 'author'} for creator in creatorList]
+    return authorList
+
+
+def splitContributors(contributorList, contributorTypeList, roleMapping):
+    """ Split the contributors by type, since they are added to different parts of the XML tree. """
+    citedContacts = []
+    supportContacts = []
+    for i in range(len(contributorList)):
+        name = contributorList[i]
+        roleDataCite = contributorTypeList[i]
+        roleISO = roleMapping[roleDataCite]
+        contactRecord = {"name": name, "role": roleISO}
+        if roleISO == 'pointOfContact':
+            supportContacts.append(contactRecord)
+        else:
+            citedContacts.append(contactRecord)
+    return citedContacts, supportContacts
+
+
+def createResponsibleParties(root, contactXPath, contactList):
+    ''' Insert XML elements for a list of contact records. '''
+    contactTemplate, contactParent, contactIndex = xml.cutElement(root, contactXPath, True)
+    insertCounter = 0
+    for contactRecord in contactList:
+        contactElement = xml.copyElement(contactTemplate)
+        iso.modifyContactDataSelectively(contactElement, contactRecord)
+        contactParent.insert(contactIndex + insertCounter, contactElement)
+        insertCounter += 1
+
 

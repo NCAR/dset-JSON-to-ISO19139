@@ -21,7 +21,8 @@ parentXPaths = {
 }
 
 
-def transformRequiredFields(root, emptyContactElement, citedContactParent, record):
+#def transformRequiredFields(root, emptyContactElement, citedContactParent, record):
+def transformRequiredFields(root, record):
     '''Transform fields that are required according to the DSET Metadata Dialect.  
        Not all required fields must be present in the record because the ISO template may have default values for them.
     '''
@@ -60,18 +61,26 @@ def transformRequiredFields(root, emptyContactElement, citedContactParent, recor
     # - Author: repeatable
     assert record.has_key('author')
     authors = record['author']
+    firstLoopIteration = True
     for author in authors:
-        iso.appendContactData(citedContactParent, emptyContactElement, author, 'author')
+        #iso.appendContactData(citedContactParent, emptyContactElement, author, 'author')
+        if firstLoopIteration:
+            contactElement = xml.getElement(root, parentXPaths['citedContact'])
+            iso.modifyContactData(contactElement, author, 'author')
+        else:
+            iso.appendContactData(root, parentXPaths['citedContact'], author, 'author')
+        firstLoopIteration = False
 
     # - Publisher: not repeatable
     if record.has_key('publisher'):
-        iso.appendContactData(citedContactParent, emptyContactElement, record['publisher'], 'publisher')
+        #iso.appendContactData(citedContactParent, emptyContactElement, record['publisher'], 'publisher')
+        iso.appendContactData(root, parentXPaths['citedContact'], record['publisher'], 'publisher')
 
     # - Abstract: not repeatable
     assert record.has_key('abstract')
     xml.setElementValue(root, parentXPaths['abstract'], record['abstract'])
 
-    # - Resource Support Contact
+    # - Resource Support Contact: not repeatable
     if record.has_key('resource_support'):
         element = xml.getElement(root, parentXPaths['supportContact'])
         iso.modifyContactData(element, record['resource_support'], 'pointOfContact')

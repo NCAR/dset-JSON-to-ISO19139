@@ -7,6 +7,7 @@ import api.util.xml as xml
 
 
 parentXPaths = {
+     'citedContact'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty',
      'citation'            : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:credit/gco:CharacterString',
      'keyword'             : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../gmd:keyword',
      'supportContact'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact',
@@ -19,13 +20,13 @@ parentXPaths = {
 }
 
 
-def transformRecommendedFields(root, emptyContactElement, citedContactParent, record):
+#def transformRecommendedFields(root, emptyContactElement, citedContactParent, record):
+def transformRecommendedFields(root, record):
 
     # - Other Responsible Individual/Organization: repeatable
     if record.has_key('other_responsible_party'):
-        parties = record['other_responsible_party']
-        for party in parties:
-            iso.appendContactData(citedContactParent, emptyContactElement, party)
+        for party in record['other_responsible_party']:
+            iso.appendContactData(root, parentXPaths['citedContact'], party)
 
     # - Citation: not repeatable
     if record.has_key('citation'):

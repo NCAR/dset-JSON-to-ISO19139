@@ -84,7 +84,8 @@ def modifyTemporalExtent(xml_root, extentXPath, extentRecord):
 
 
 def modifyContactData(contactElement, contactData, impliedRoleValue = None):
-    ''' Modify contents of a "contact" ISO element, a.k.a ResponsibleParty element. '''
+    ''' Modify contents of a "contact" ISO element, a.k.a ResponsibleParty element. 
+        Modify all values, substituting empty text where values are not given. '''
 
     #  For some contact elements, a specific role value is implied.  Set this value if given.
     if impliedRoleValue:
@@ -111,6 +112,37 @@ def modifyContactData(contactElement, contactData, impliedRoleValue = None):
     xml.setTextOrMarkMissing(element, roleValue)
     element.attrib['codeListValue'] = roleValue
 
+
+def modifyContactDataSelectively(contactElement, contactData):
+    ''' Modify contents of a "contact" XML element, a.k.a ResponsibleParty element.
+        Only override XML values if fill values are given, so XML template values are unchanged. '''
+    nameValue = contactData.get('name', None)
+    if nameValue:
+        element = xml.getElement(contactElement, childXPaths['individual'])
+        xml.setTextOrMarkMissing(element, nameValue)
+
+    positionValue = contactData.get('position', None)
+    if positionValue:
+        element = xml.getElement(contactElement, childXPaths['position'])
+        xml.setTextOrMarkMissing(element, positionValue)
+
+    organizationValue = contactData.get('organization', None)
+    if organizationValue:
+        element = xml.getElement(contactElement, childXPaths['organization'])
+        xml.setTextOrMarkMissing(element, organizationValue)
+
+    emailValue = contactData.get('email', None)
+    if emailValue:
+        element = xml.getElement(contactElement, childXPaths['email'])
+        xml.setTextOrMarkMissing(element, emailValue)
+
+    roleValue = contactData.get('role', None)
+    if roleValue:
+        element = xml.getElement(contactElement, childXPaths['roleCode'])
+        xml.setTextOrMarkMissing(element, roleValue)
+        element.attrib['codeListValue'] = roleValue
+
+
 # 
 # Methods for inserting a collection of related ISO elements.
 #
@@ -128,11 +160,16 @@ def addSpatialResolutionDistances(xml_root, resolutionXPath, resolutionList):
         resolutionParent.insert(elementIndex + insertCounter, elementCopy)
         insertCounter += 1
 
-def appendContactData(citedContactParent, emptyContactElement, contactData, impliedRoleValue = None):
-    ''' Append a contact element to the CitedContact section of the XML document. '''
-    elementCopy = xml.copyElement(emptyContactElement)
+
+def appendContactData(xml_root, contactXPath, contactData, impliedRoleValue = None):
+    ''' Append a new contact element to a collection of ResponsibleParty elements '''
+    contactElement = xml.getLastElement(xml_root, contactXPath)
+    contactParent = contactElement.getparent()
+    contactIndex = contactParent.index(contactElement)
+    elementCopy = xml.copyElement(contactElement)
     modifyContactData(elementCopy, contactData, impliedRoleValue)
-    citedContactParent.append(elementCopy)
+    contactParent.insert(contactIndex + 1, elementCopy)
+
 
 def addKeywords(xml_root, keywordXPath, keywordList):
     ''' Add GCMD Keyword elements, one element per list item, to the keyword section of the XML document. '''
