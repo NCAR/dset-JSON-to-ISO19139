@@ -20,10 +20,14 @@ These are the package versions that have been tested:
 
 ### Prerequisites 
 
-You must be on a machine with python installed, where the python "virtualenv" command is available.  This command is needed to create a python environment where you can install several python library dependencies.
+You must be on a machine with python installed, where the "virtualenv" or "conda" command is available.  One of these commands is needed to create a python environment where you can install several python library dependencies.  If either of the following commands returns a path, then you are set:
+
+     which conda
+     which virtualenv
+
 
 #### Linux
-On most versions of Linux, the "virtualenv" command should be available already.  If not, then the commands
+On many versions of Linux, the "virtualenv" command should be available already.  If not, then the commands
 
      sudo yum install python-devel
      sudo pip install virtualenv 
