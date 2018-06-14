@@ -186,8 +186,8 @@ def splitContributors(contributorList, contributorTypeList, roleMapping):
     supportContacts = []
     for i in range(len(contributorList)):
         name = contributorList[i]
-        roleDataCite = contributorTypeList[i]
-        roleISO = roleMapping[roleDataCite]
+        roleDatacite = contributorTypeList[i]
+        roleISO = roleMapping[roleDatacite]
         contactRecord = {"name": name, "role": roleISO}
         if roleISO == 'pointOfContact':
             supportContacts.append(contactRecord)

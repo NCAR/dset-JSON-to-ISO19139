@@ -1,0 +1,6 @@
+# .coveragerc
+[report]
+show_missing = True
+[nosetests]
+nocapture=0
+
