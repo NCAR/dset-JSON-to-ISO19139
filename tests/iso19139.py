@@ -19,14 +19,16 @@ import api.util.xml as xml
 def getEmptyTemporalExtentXMLTree():
     ''' Create a simplified XML Tree with a temporal extent whose values are all missing. '''
     root = ElementTree.fromstring('''
-    <root xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <root xmlns:gco="http://www.isotc211.org/2005/gco" 
+          xmlns:gmd="http://www.isotc211.org/2005/gmd" 
+          xmlns:gml="http://www.opengis.net/gml" 
+          xmlns:xlink="http://www.w3.org/1999/xlink">
       <gml:TimePeriod gml:id="timePeriodDate">
         <gml:beginPosition></gml:beginPosition>
         <gml:endPosition></gml:endPosition>
       </gml:TimePeriod>
     </root>
     ''')
-
     return root
 
 
@@ -39,7 +41,7 @@ class ISO19139_Test(unittest.TestCase):
       self.simpleTree = Element('Root')
 
    def testModifyTemporalExtent_SetsIndeterminateAttributes(self):
-      ''' Empty string should be returned if no child text is found.
+      ''' If special time values are used for temporal extent, the "indeterminatePosition" attribute should be set.
       '''
       xml_tree = getEmptyTemporalExtentXMLTree()
       extentRecord = {"start": "unknown", "end": "now"}
