@@ -122,7 +122,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     xml.setElementValue(root, parentXPaths['publicationDate'], record["publicationYear"])
 
     # Make DOI URL the Landing Page
-    url = "http://dx.doi.org/" + record["doi"]
+    url = "https://doi.org/" + record["doi"]
     xml.setElementValue(root, parentXPaths['landingPage'], url)
 
     # Add relatedIdentifier as online resource if it is a URL
