@@ -16,6 +16,7 @@ roleMappingDataCiteToISO = {
       "DataManager":           "custodian",
       "Distributor":           "distributor",
       "Editor":                "editor",
+      "Funder":                "funder",
       "HostingInstitution":    "resourceProvider",
       "Producer":              "mediator",
       "ProjectLeader":         "principalInvestigator",
