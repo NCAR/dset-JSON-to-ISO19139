@@ -118,6 +118,14 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     else:
         xml.cutElement(parentXPaths['abstract'])
 
+    # Put rights in legalConstraints
+    if record.has_key("rights"):
+        rightsText = xml.getFirst(record['rights'])
+        if record.has_key("rightsURI"):
+            rightsURI = xml.getFirst(record['rightsURI'])
+            rightsText += ' (See ' + rightsURI + ' )'
+        xml.setElementValue(root, parentXPaths['legalConstraints'], rightsText)
+
     # Put publicationYear in CI_Citation/date
     xml.setElementValue(root, parentXPaths['publicationDate'], record["publicationYear"])
 

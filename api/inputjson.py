@@ -45,7 +45,7 @@ def getDataCiteRecords(doi=None):
     """ Return a list of JSON records obtained from the DataCite DOI website. """
     dataCiteURL = 'https://search.datacite.org/api'
     filterQuery = '&fq=prefix:10.5065&fq=is_active:true&wt=json'
-    filterResult = '&fl=doi,relatedIdentifier,resourceTypeGeneral,title,description,publicationYear,subject,creator,contributor,contributorType,publisher'
+    filterResult = '&fl=doi,relatedIdentifier,resourceTypeGeneral,title,description,publicationYear,subject,creator,contributor,contributorType,publisher,rights,rightsURI'
 
     if doi:
         textFilter = '?q=' + doi
