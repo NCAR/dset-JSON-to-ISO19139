@@ -60,9 +60,9 @@ def translateDataCiteRecords():
     # Get records
     records = getDataCiteRecords()
 
-    print "##"
-    print "## Translating " + str(len(records)) + " Records..."
-    print "##"
+    print("##")
+    print("## Translating " + str(len(records)) + " Records...")
+    print("##")
 
     # Loop over DataCite Records
     for record in records:
@@ -76,7 +76,7 @@ def translateDataCiteRecords():
         f.write(xmlOutput)
         f.close()
 
-    print '...Finished Translating Records.'
+    print('...Finished Translating Records.')
 
 
 def translateDataCiteRecord(record, templateFile):
@@ -84,7 +84,7 @@ def translateDataCiteRecord(record, templateFile):
     recordISO, recordID = transformDataCiteToISO(record, templateFile, roleMappingDataCiteToISO)
 
     headerXML = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    outputXML = headerXML + recordISO
+    outputXML = headerXML + recordISO.decode('utf-8')
     return outputXML
 
 
@@ -94,7 +94,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     root = xml.getXMLTree(templateFileISO)
 
     # Put DOI in fileIdentifier
-    assert record.has_key('doi')
+    assert 'doi' in record
     xml.setElementValue(root, parentXPaths['fileIdentifier'], record['doi'])
 
     # Put current time in dateStamp
@@ -102,28 +102,29 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     xml.setElementValue(root, parentXPaths['metadataDate'], currentTime)
 
     # Put resourceTypeGeneral in hierarchyLevelName
-    assert record.has_key('resourceTypeGeneral')
-    xml.setElementValue(root, parentXPaths['resourceType'], record['resourceTypeGeneral'])
+    assert 'resourceTypeGeneral' in record['types'] 
+    xml.setElementValue(root, parentXPaths['resourceType'], record['types']['resourceTypeGeneral'])
 
     # Put title in title
-    assert record.has_key('title')
-    titleValue = xml.getFirst(record['title'])
+    assert 'title' in record['titles'][0]
+    titleValue = record['titles'][0]['title']
     xml.setElementValue(root, parentXPaths['title'], titleValue)
 
     # Put description in abstract
-    if record.has_key("description"):
+    if 'description' in record['descriptions'][0]:
         fullXPath = parentXPaths['abstract'] + '/gco:CharacterString'
-        descriptionValue = xml.getFirst(record['description'])
+        descriptionValue = record['descriptions'][0]['description']
         xml.setElementValue(root, fullXPath, descriptionValue )
     else:
         xml.cutElement(parentXPaths['abstract'])
 
     # Put rights in legalConstraints
-    if record.has_key("rights"):
-        rightsText = xml.getFirst(record['rights'])
-        if record.has_key("rightsURI"):
-            rightsURI = xml.getFirst(record['rightsURI'])
-            rightsText += ' (See ' + rightsURI + ' )'
+    if 'rightsList' in record and len(record['rightsList']) > 0:
+        rightsElement = record['rightsList'][0]
+        rightsText = rightsElement.get('rights', '')
+        if 'rightsUri' in rightsElement:
+            rightsText += ' (See also ' + rightsElement['rightsUri'] + ' )'
+        sys.stderr.write('rightsText: %s\n' % rightsText)
         xml.setElementValue(root, parentXPaths['legalConstraints'], rightsText)
 
     # Put publicationYear in CI_Citation/date
@@ -134,28 +135,28 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     xml.setElementValue(root, parentXPaths['landingPage'], url)
 
     # Add relatedIdentifier as online resource if it is a URL
-    relatedIdentifierList = record.get("relatedIdentifier", [])
+    relatedIdentifierList = record.get("relatedIdentifiers", [])
+    relatedURLs = [id['relatedIdentifier'] for id in relatedIdentifierList if id['relatedIdentifierType'] == 'URL']
     relatedLinks = []
-    for relatedIdentifier in relatedIdentifierList:
-        namePart, typePart, urlPart = getRelatedIdentifierParts(relatedIdentifier)
-        if typePart == "URL":
-            relatedLinks.append({"name": namePart, "linkage": urlPart, "description": ""})
+    for url in relatedURLs:
+        relatedLinks.append({"name": "Unknown URL title", "linkage": url, "description": "Unknown URL description"})
     iso.addRelatedLinks(root, parentXPaths['relatedLink'], relatedLinks)
 
     # Add "subject" keywords.  Fill existing element first, then create copies.
-    if record.has_key("subject"):
-        iso.addKeywords(root, parentXPaths['keyword'], record['subject'])
+    if 'subjects' in record:
+        keywords = [s['subject'] for s in record['subjects']]
+        iso.addKeywords(root, parentXPaths['keyword'], keywords)
 
-    # Create list of cited contacts from three keys: "creator", "publisher", and "contributor".
-    # Also obtain a list of support contacts from "contributor".
+    # Create list of cited contacts from three keys: "creators", "publisher", and "contributors".
+    # Also obtain a list of support contacts from "contributors".
     citedContacts = getAuthors(record)
 
-    if record.has_key("publisher"):
+    if 'publisher' in record:
         publisherRecord = {"organization": record["publisher"], "role": "publisher"}
         citedContacts.append(publisherRecord)
 
-    if record.has_key("contributor") and record.has_key("contributorType"):
-        otherContacts, supportContacts = splitContributors(record["contributor"], record["contributorType"], roleMapping)
+    if ('contributors' in record):
+        otherContacts, supportContacts = splitContributors(record["contributors"], roleMapping)
         citedContacts.extend(otherContacts)
     else:
         supportContacts = []
@@ -184,18 +185,21 @@ def getRelatedIdentifierParts(relatedIdentifier):
 
 def getAuthors(record):
     ''' Convert the list of creators into a list of author records. '''
-    creatorList = record["creator"]
-    authorList = [{"name": creator, "role": 'author'} for creator in creatorList]
+    creatorList = record["creators"]
+    authorList = [{"name": creator['name'], "role": 'author'} for creator in creatorList]
+    #sys.stderr.write('authorList : %s\n' % authorList)
     return authorList
 
 
-def splitContributors(contributorList, contributorTypeList, roleMapping):
+def splitContributors(contributorList, roleMapping):
     """ Split the contributors by type, since they are added to different parts of the XML tree. """
+    # Remove contributors that do not have a contributorType.
+    contributorsWithType = [contributor for contributor in contributorList if 'contributorType' in contributor]
     citedContacts = []
     supportContacts = []
-    for i in range(len(contributorList)):
-        name = contributorList[i]
-        roleDatacite = contributorTypeList[i]
+    for contributor in contributorsWithType:
+        name = contributor['name']
+        roleDatacite = contributor['contributorType']
         roleISO = roleMapping[roleDatacite]
         contactRecord = {"name": name, "role": roleISO}
         if roleISO == 'pointOfContact':

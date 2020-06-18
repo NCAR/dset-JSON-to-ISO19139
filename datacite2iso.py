@@ -9,7 +9,7 @@ import os.path
 import api.inputjson as input_json
 import api.translate.datacite as translate
 
-__version_info__ = ('2018','06','14')
+__version_info__ = ('2020','06','16')
 __version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''
@@ -56,14 +56,13 @@ if not os.path.isfile(templateFilePath):
 
 # Query the specified DOI's metadata JSON record.
 doi = args.doi[0]
-records = input_json.getDataCiteRecords(doi)
+record = input_json.getDataCiteRecords(doi)
 
 
 #
 #  Perform the translation.
 #
-if len(records) > 0:
-    record = records[0]
+if len(record) > 0:
     output = translate.translateDataCiteRecord(record, templateFilePath)
     print(output)
 else:

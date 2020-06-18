@@ -1,0 +1,6 @@
+name: json2iso
+channels:
+- conda-forge
+dependencies:
+- urllib3
+- lxml

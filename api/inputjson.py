@@ -2,8 +2,10 @@
 
 import os.path
 import json
-import urllib2
+from urllib.request import urlopen
 
+#import sys
+#import pprint
 
 #
 #  Functions for finding and loading text files containing DSET JSON.
@@ -41,29 +43,40 @@ def getTemplateFilePath(templateArgument, defaultTemplate):
 #  Functions for pulling DataCite records and converting them to JSON.
 #
 
-def getDataCiteRecords(doi=None):
+def getDataCiteRecords(doi):
     """ Return a list of JSON records obtained from the DataCite DOI website. """
-    dataCiteURL = 'https://search.datacite.org/api'
+    dataCiteURL = 'https://api.datacite.org/dois/'
     filterQuery = '&fq=prefix:10.5065&fq=is_active:true&wt=json'
     filterResult = '&fl=doi,relatedIdentifier,resourceTypeGeneral,title,description,publicationYear,subject,creator,contributor,contributorType,publisher,rights,rightsURI'
 
     if doi:
-        textFilter = '?q=' + doi
+        textFilter =  doi
     else:
         textFilter = '?q=*'
 
-    fullQuery = dataCiteURL + textFilter + filterQuery + filterResult
+    #fullQuery = dataCiteURL + textFilter + filterQuery + filterResult
+    fullQuery = dataCiteURL + textFilter 
 
-    # Determine number of records
-    response = urllib2.urlopen(fullQuery + '&rows=0')
-    jsonData = json.load(response)
-    response = jsonData["response"]
-    numRecords = response["numFound"]
+    #print(f'fullQuery == {fullQuery}')
+    #sys.stderr.write('fullQuery: %s\n' % fullQuery)
+
+    ## Determine number of records
+    #with urlopen(fullQuery + '&rows=0') as url:
+    #    response = url.read()
+    #jsonData = json.load(response)
+    #response = jsonData["response"]
+    #numRecords = response["numFound"]
+
 
     # Get the records
-    response = urllib2.urlopen(fullQuery + '&rows=' + str(numRecords))
-    jsonData = json.load(response)
-    response = jsonData["response"]
-    records = response["docs"]
-    return records
+    #with urlopen(fullQuery + '&rows=' + str(numRecords)) as url:
+    with urlopen(fullQuery) as url:
+        response = url.read()
+    #sys.stderr.write('response: %s\n' % response)
+    jsonData = json.loads(response.decode('utf-8'))
+
+    #pprint.pprint(jsonData)
+
+    response = jsonData['data']['attributes']
+    return response
 
