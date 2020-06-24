@@ -174,6 +174,11 @@ def appendContactData(xml_root, contactXPath, contactData, impliedRoleValue = No
 def addKeywords(xml_root, keywordXPath, keywordList):
     ''' Add GCMD Keyword elements, one element per list item, to the keyword section of the XML document. '''
     keywordElement, keywordParent, originalIndex = xml.cutElement(xml_root, keywordXPath, True)
+    if not keywordList:
+        keywordSection = keywordParent.getparent()
+        keywordSectionParent = keywordSection.getparent()
+        keywordSectionParent.remove(keywordSection)
+        return
     insertCounter = 0
     for keyword in keywordList:
         elementCopy = xml.copyElement(keywordElement)

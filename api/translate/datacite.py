@@ -48,9 +48,12 @@ parentXPaths = {
      'supportContact'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact',
      'resourceType'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "Resource Type")]/../../../../gmd:keyword/gco:CharacterString',
      'keyword'             : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../gmd:keyword',
+     'keywordCutElement'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../../../gmd:descriptiveKeywords',
      'relatedLink'         : '/gmd:MD_Metadata/gmd:metadataExtensionInfo',
      'legalConstraints'    : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useLimitation/gco:CharacterString',
      'accessConstraints'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString',
+     'geoExtent'           : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox',
+     'geoExtentCutElement' : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent',
 }
 
 
@@ -122,9 +125,8 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     if 'rightsList' in record and len(record['rightsList']) > 0:
         rightsElement = record['rightsList'][0]
         rightsText = rightsElement.get('rights', '')
-        if 'rightsUri' in rightsElement:
+        if 'rightsUri' in rightsElement and rightsElement['rightsUri']:
             rightsText += ' (See also ' + rightsElement['rightsUri'] + ' )'
-        sys.stderr.write('rightsText: %s\n' % rightsText)
         xml.setElementValue(root, parentXPaths['legalConstraints'], rightsText)
 
     # Put publicationYear in CI_Citation/date
@@ -142,10 +144,13 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
         relatedLinks.append({"name": "Unknown URL title", "linkage": url, "description": "Unknown URL description"})
     iso.addRelatedLinks(root, parentXPaths['relatedLink'], relatedLinks)
 
-    # Add "subject" keywords.  Fill existing element first, then create copies.
+    # Add "subject" keywords.  Fill existing element first, then create copies.   If no keywords are present, cut XML element.
+    keywords = []
     if 'subjects' in record:
         keywords = [s['subject'] for s in record['subjects']]
-        iso.addKeywords(root, parentXPaths['keyword'], keywords)
+
+    # Call this even if keywords are empty, so any unpopulated keyword XML elements are removed. 
+    iso.addKeywords(root, parentXPaths['keyword'], keywords)
 
     # Create list of cited contacts from three keys: "creators", "publisher", and "contributors".
     # Also obtain a list of support contacts from "contributors".
@@ -167,6 +172,20 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
 
     # Fill in support contacts.
     createResponsibleParties(root, parentXPaths['supportContact'], supportContacts)
+
+    # Fill in geographical bounding box if provided. 
+    if ('geoLocations' in record) and (len(record['geoLocations']) > 0) and ('geoLocationBox' in record['geoLocations'][0]):
+        #sys.stderr.write('Saw Geo Data: %s\n' % rightsText)
+        bbox = record['geoLocations'][0]['geoLocationBox']
+        bbox_new = {'west':  bbox['westBoundLongitude'], 
+                    'east':  bbox['eastBoundLongitude'], 
+                    'north': bbox['northBoundLatitude'], 
+                    'south': bbox['southBoundLatitude']
+                    }
+        iso.modifyBoundingBox(root, parentXPaths['geoExtent'], bbox_new)
+    else:
+        xml.cutElement(root, parentXPaths['geoExtentCutElement'])
+
 
     # Return ISO record and record identifier
     recordAsISO = xml.toString(root)
