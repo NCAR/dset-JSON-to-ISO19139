@@ -28,38 +28,38 @@ def transformRequiredFields(root, record):
     '''
 
     # - Metadata Record ID: not repeatable
-    assert record.has_key('metadata_id')
+    assert 'metadata_id' in record
     xml.setElementValue(root, parentXPaths['fileIdentifier'], record['metadata_id'])
 
     # - ISO Asset Type (default value: dataset): not repeatable
     xml.setElementValue(root, parentXPaths['assetType'], record['asset_type'], True)
 
     # - Metadata Point of Contact: not repeatable
-    if record.has_key('metadata_contact'):
+    if 'metadata_contact' in record:
         element = xml.getElement(root, parentXPaths['metadataContact'])
         iso.modifyContactData(element, record['metadata_contact'], 'pointOfContact')
 
     # - Metadata Date (not repeatable): Use current time if not present in the record. 
-    if record.has_key('metadata_date'):
+    if 'metadata_date' in record:
         metadataDate = record['metadata_date']
     else:
         metadataDate = datetime.now().isoformat()
     xml.setElementValue(root, parentXPaths['metadataDate'], metadataDate)
 
     # - Landing Page: not repeatable
-    assert record.has_key('landing_page')
+    assert 'landing_page' in record
     xml.setElementValue(root, parentXPaths['landingPage'], record['landing_page'])
 
     # - Title: not repeatable
-    assert record.has_key('title')
+    assert 'title' in record
     xml.setElementValue(root, parentXPaths['title'], record['title'])
 
     # - Publication Date: not repeatable
-    assert record.has_key('publication_date')
+    assert 'publication_date' in record
     xml.setElementValue(root, parentXPaths['publicationDate'], record['publication_date'])
 
     # - Author: repeatable
-    assert record.has_key('author')
+    assert 'author' in record
     authors = record['author']
     firstLoopIteration = True
     for author in authors:
@@ -72,29 +72,29 @@ def transformRequiredFields(root, record):
         firstLoopIteration = False
 
     # - Publisher: not repeatable
-    if record.has_key('publisher'):
+    if 'publisher' in record:
         #iso.appendContactData(citedContactParent, emptyContactElement, record['publisher'], 'publisher')
         iso.appendContactData(root, parentXPaths['citedContact'], record['publisher'], 'publisher')
 
     # - Abstract: not repeatable
-    assert record.has_key('abstract')
+    assert 'abstract' in record
     xml.setElementValue(root, parentXPaths['abstract'], record['abstract'])
 
     # - Resource Support Contact: not repeatable
-    if record.has_key('resource_support'):
+    if 'resource_support' in record:
         element = xml.getElement(root, parentXPaths['supportContact'])
         iso.modifyContactData(element, record['resource_support'], 'pointOfContact')
 
     # - DataCite Resource Type: not repeatable
-    if record.has_key('resource_type'):
+    if 'resource_type' in record:
         xml.setElementValue(root, parentXPaths['resourceType'], record['resource_type'])
 
     # - Legal Constraints: not repeatable
-    if record.has_key('legal_constraints'):
+    if 'legal_constraints' in record:
         xml.setElementValue(root, parentXPaths['legalConstraints'], record['legal_constraints'])
 
     # - Access Constraints: not repeatable
-    if record.has_key('access_constraints'):
+    if 'access_constraints' in record:
         xml.setElementValue(root, parentXPaths['accessConstraints'], record['access_constraints'])
 
     return root

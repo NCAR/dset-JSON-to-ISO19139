@@ -64,7 +64,7 @@ record = input_json.getDataCiteRecords(doi)
 #
 if len(record) > 0:
     output = translate.translateDataCiteRecord(record, templateFilePath)
-    print(output)
+    print(output, file=sys.stdout)
 else:
-    print("DOI " + doi + " was not found.\n")
+    print(("DOI " + doi + " was not found.\n"), file=sys.stderr)
 

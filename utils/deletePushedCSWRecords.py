@@ -49,9 +49,9 @@ deleteISOTemplate = './templates_ISO19139/deleteCSW.xml'
 with open(recordIDFile,"r") as infile:
 	listOfIDs = infile.read().splitlines()
 
-print "##"
-print "## Deleting " + str(len(listOfIDs)) + " Records..."
-print "##"
+print("##", file=sys.stderr)
+print("## Deleting " + str(len(listOfIDs)) + " Records...", file=sys.stderr)
+print("##", file=sys.stderr)
 
 # Loop over IDs to delete
 for id in listOfIDs:
@@ -71,15 +71,15 @@ for id in listOfIDs:
 
 		try:
 			response = requests.post(url, auth=HTTPBasicAuth('admin', 'admin'), headers=header, data=xmlOutput)
-			print response.text
+			print(response.text, file=sys.stderr)
 		except requests.ConnectionError:
-			print 'ConnectionError: failed to connect: ' + url
+			print('ConnectionError: failed to connect: ' + url, file=sys.stderr)
 
 		if response.status_code != 200:
 			raise OSError("Response " + str(response.status_code) + ": " + response.content)
-		print response.status_code
+		print(response.status_code, file=sys.stderr)
 
-print '...Finished deleting records.'
+print('...Finished deleting records.', file=sys.stderr)
 
 
 

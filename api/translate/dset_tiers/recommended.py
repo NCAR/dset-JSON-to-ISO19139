@@ -24,17 +24,17 @@ parentXPaths = {
 def transformRecommendedFields(root, record):
 
     # - Other Responsible Individual/Organization: repeatable
-    if record.has_key('other_responsible_party'):
+    if 'other_responsible_party' in record:
         for party in record['other_responsible_party']:
             iso.appendContactData(root, parentXPaths['citedContact'], party)
 
     # - Citation: not repeatable
-    if record.has_key('citation'):
+    if 'citation' in record:
         element = xml.setElementValue(root, parentXPaths['citation'], record['citation'])
 
     # - Science Support Contact: repeatable
     # Note: data for Resource Support Contact information was inserted, so we must preserve existing elements.
-    if record.has_key('science_support'):
+    if 'science_support' in record:
         supportElement, supportParent, originalIndex = xml.cutElement(root, parentXPaths['supportContact'], True)
         supportParent.insert(originalIndex, supportElement)
         insertCounter = 1
@@ -46,7 +46,7 @@ def transformRecommendedFields(root, record):
 
 
     # - Keywords: repeatable
-    if record.has_key('keywords'):
+    if 'keywords' in record:
         iso.addKeywords(root, parentXPaths['keyword'], record['keywords'])
 
     # - Keyword Vocabulary:   Not included at this point.
@@ -54,7 +54,7 @@ def transformRecommendedFields(root, record):
     # - Reference System:  potentially very complex, not shown in DASH Search, not included at this point.
 
     # - Spatial Representation: repeatable
-    if record.has_key('spatial_representation'):
+    if 'spatial_representation' in record:
         childXPath = 'gmd:MD_SpatialRepresentationTypeCode'
         setCodeList = True
         xml.addChildList(root, parentXPaths['spatialRepType'], childXPath, record['spatial_representation'], setCodeList)
@@ -62,32 +62,32 @@ def transformRecommendedFields(root, record):
         xml.cutElement(root, parentXPaths['spatialRepType'])
 
     # - Spatial Resolution: repeatable
-    if record.has_key('spatial_resolution'):
+    if 'spatial_resolution' in record:
         iso.addSpatialResolutionDistances(root, parentXPaths['spatialResolution'], record['spatial_resolution'])
     else:
         xml.cutElement(root, parentXPaths['spatialResolution'])
 
     # - ISO Topic Category: repeatable
-    if record.has_key('topic_category'):
+    if 'topic_category' in record:
         childXPath = 'gmd:MD_TopicCategoryCode'
         xml.addChildList(root, parentXPaths['topicCategory'], childXPath, record['topic_category'])
     else:
         xml.cutElement(root, parentXPaths['topicCategory'])
 
     # - GeoLocation: not repeatable
-    if record.has_key('geolocation'):
+    if 'geolocation' in record:
         iso.modifyBoundingBox(root, parentXPaths['geoExtent'], record['geolocation'])
     else:
         xml.cutElement(root, parentXPaths['geoExtent'])
 
     # - Temporal Coverage: not repeatable
-    if record.has_key('temporal_coverage'):
+    if 'temporal_coverage' in record:
         iso.modifyTemporalExtent(root, parentXPaths['temporalExtent'], record['temporal_coverage'])
     else:
         xml.cutElement(root, parentXPaths['temporalExtent'])
 
     # - Temporal Resolution: not repeatable
-    if record.has_key('temporal_resolution'):
+    if 'temporal_resolution' in record:
         xml.setElementValue(root, parentXPaths['temporalResolution'], record['temporal_resolution'])
 
     # - Vertical Extent: potentially very complicated in ISO 19139; not included at this point. 

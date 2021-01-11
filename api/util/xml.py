@@ -28,7 +28,7 @@ def getXMLTree(templateFilePath):
 
 
 def toString(xml_tree):
-    outputString = ElementTree.tostring(xml_tree, pretty_print=True)
+    outputString = ElementTree.tostring(xml_tree, encoding='unicode', pretty_print=True)
     return outputString
 
 #
@@ -94,7 +94,7 @@ def setTextOrMarkMissing(element, fillText, setCodeListValue = False):
     # Set or remove "gco:nilReason = missing" attribute from parent element
     missingAttribute = '{http://www.isotc211.org/2005/gco}nilReason'
     hasParent = element.getparent() is not None
-    hasParentWithMissing = hasParent and element.getparent().attrib.has_key(missingAttribute)
+    hasParentWithMissing = hasParent and missingAttribute in element.getparent().attrib
     if len(fillText) > 0 and hasParentWithMissing:
         element.getparent().attrib.pop(missingAttribute)
     elif len(fillText) == 0 and hasParent:

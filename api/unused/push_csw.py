@@ -18,10 +18,10 @@ def pushToCSW(xmlText):
         id_file.write(recordID + '\n')
 
     except requests.ConnectionError:
-        print 'ConnectionError: failed to connect: ' + url
+        print('ConnectionError: failed to connect: ' + url, file=sys.stderr)
 
     if response.status_code != 200:
-        print response.text
+        print(response.text, file=sys.stderr)
         raise OSError("Response " + str(response.status_code) + ": " + response.content)
 
-    print response.status_code
+    print(response.status_code, file=sys.stderr)

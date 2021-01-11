@@ -63,9 +63,9 @@ def translateDataCiteRecords():
     # Get records
     records = getDataCiteRecords()
 
-    print("##")
-    print("## Translating " + str(len(records)) + " Records...")
-    print("##")
+    print("##", file=sys.stderr)
+    print(("## Translating " + str(len(records)) + " Records..."), file=sys.stderr)
+    print("##", file=sys.stderr)
 
     # Loop over DataCite Records
     for record in records:
@@ -79,7 +79,7 @@ def translateDataCiteRecords():
         f.write(xmlOutput)
         f.close()
 
-    print('...Finished Translating Records.')
+    print('...Finished Translating Records.', file=sys.stderr)
 
 
 def translateDataCiteRecord(record, templateFile):

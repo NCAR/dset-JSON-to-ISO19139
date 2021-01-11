@@ -20,13 +20,13 @@ def transformOptionalFields(root, record):
 
     # //OPTIONAL FIELDS
     # - Related Link: repeatable
-    if record.has_key('related_link'):
+    if 'related_link' in record:
         iso.addRelatedLinks(root, parentXPaths['relatedLink'], record['related_link'])
     else:
         xml.cutElement(root, parentXPaths['relatedLink'])
 
     # - Alternate Identifier: repeatable
-    if record.has_key('alternate_identifier'):
+    if 'alternate_identifier' in record:
         emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['alternateTitle'], True)
         indexCounter = 0
         for title in record['alternate_identifier']:
@@ -38,20 +38,20 @@ def transformOptionalFields(root, record):
         xml.cutElement(root, parentXPaths['alternateTitle'])
 
     # - Resource Version: not repeatable
-    if record.has_key('resource_version'):
+    if 'resource_version' in record:
         fullXPath = parentXPaths['resourceVersion'] + '/gco:CharacterString'
         xml.setElementValue(root, fullXPath, record['resource_version'])
     else:
         xml.cutElement(root, parentXPaths['resourceVersion'])
 
     # - Progress: not repeatable
-    if record.has_key('progress'):
+    if 'progress' in record:
         xml.setElementValue(root, parentXPaths['progressCode'], record['progress'], True)
     else:
         xml.cutElement(root, parentXPaths['resourceVersion'])
 
     # - Resource Format: repeatable
-    if record.has_key('resource_format'):
+    if 'resource_format' in record:
         emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['resourceFormat'], True)
         indexCounter = 0
         for format in record['resource_format']:
@@ -65,21 +65,21 @@ def transformOptionalFields(root, record):
         xml.cutElement(root, parentXPaths['resourceFormat'])
 
     # - Software Implementation Language: not repeatable
-    if record.has_key('software_implementation_language'):
+    if 'software_implementation_language' in record:
         languageElement = xml.getElement(root, parentXPaths['softwareLanguage'])
         xml.setTextOrMarkMissing(languageElement, record['software_implementation_language'])
     else:
         xml.cutElement(root, parentXPaths['softwareLanguage'])
 
     # - Additional Information: not repeatable
-    if record.has_key('additional_information'):
+    if 'additional_information' in record:
         informationElement = xml.getElement(root, parentXPaths['additionalInfo'])
         xml.setElementValue(informationElement, 'gco:CharacterString', record['additional_information'])
     else:
         xml.cutElement(root, parentXPaths['additionalInfo'])
 
     # - Distributor: not repeatable
-    if record.has_key('distributor'):
+    if 'distributor' in record:
         distributorElement = xml.getElement(root, parentXPaths['distributor'])
         contactElement = xml.getElement(distributorElement, 'gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty')
         iso.modifyContactData(contactElement, record['distributor'], 'distributor')
@@ -87,7 +87,7 @@ def transformOptionalFields(root, record):
         xml.cutElement(root, parentXPaths['distributor'])
 
     # - Distribution Format: repeatable
-    if record.has_key('distribution_format'):
+    if 'distribution_format' in record:
         emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['distributionFormat'], True)
         indexCounter = 0
         for format in record['distribution_format']:
@@ -99,7 +99,7 @@ def transformOptionalFields(root, record):
         xml.cutElement(root, parentXPaths['distributionFormat'])
 
     # - Asset Size: not repeatable
-    if record.has_key('asset_size_MB'):
+    if 'asset_size_MB' in record:
         sizeElement = xml.getElement(root, parentXPaths['assetSize'])
         xml.setElementValue(sizeElement, 'gmd:MD_DigitalTransferOptions/gmd:transferSize/gco:Real', record['asset_size_MB'])
     else:

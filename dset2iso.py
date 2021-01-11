@@ -88,25 +88,28 @@ if readSTDIN:
     #pprint.pprint(jsonData)
 
     isoText = dset_translate.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
-    print(isoText)
+
+    # Python 3 needs conversion from byte array to string
+    isoText = str(isoText)
+    print(isoText, file=sys.stdout)
 
 else:
     inputDir = args.inputDir[0]
     outputDir = args.outputDir[0]
-    print inputDir
+    print(inputDir, file=sys.stdout)
     jsonFiles = dset_input.getJSONFileNames(inputDir)
-    print("Found " + str(len(jsonFiles)) + " input files.")
+    print("Found " + str(len(jsonFiles)) + " input files.", file=sys.stdout)
     for inputFile in jsonFiles:
         with open(inputFile, 'r') as myfile:
             inputText = myfile.readlines()
             inputText = "".join(inputText)
         jsonData = dset_input.getJSONData(inputText)
 
-        print("  Translating file: " + inputFile)
+        print(("  Translating file: " + inputFile), file=sys.stdout)
         isoText = dset_translate.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
 
         outputFile = dset_output.prepareOutputFile(inputFile, inputDir, outputDir)
-        print(inputFile + " -> " + outputFile)
+        print((inputFile + " -> " + outputFile), file=sys.stdout)
 
         file = open(outputFile, 'w')
         file.write(isoText)
