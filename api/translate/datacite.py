@@ -10,7 +10,7 @@ import api.util.iso19139 as iso
 roleMappingDataCiteToISO = {
       "Creator":               "author",
       "Publisher":             "publisher",
-      "ContactPerson":         "pointOfContact",
+      "ContactPerson":         "pointOfContact",  ## Any ContactPerson should be considered a Resource Support Contact
       "DataCollector":         "",
       "DataCurator":           "custodian",
       "DataManager":           "custodian",
@@ -24,7 +24,7 @@ roleMappingDataCiteToISO = {
       "ProjectMember":         "contributor",
       "RegistrationAgency":    "",
       "RegistrationAuthority": "",
-      "RelatedPerson":         "contributor",
+      "RelatedPerson":         "pointOfContact",  ##  Any RelatedPerson should be considered a Metadata Contact
       "Researcher":            "contributor",
       "ResearchGroup":         "collaborator",
       "RightsHolder":          "rightsHolder",
@@ -87,7 +87,7 @@ def translateDataCiteRecord(record, templateFile):
     recordISO, recordID = transformDataCiteToISO(record, templateFile, roleMappingDataCiteToISO)
 
     headerXML = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    outputXML = headerXML + recordISO.decode('utf-8')
+    outputXML = headerXML + recordISO
     return outputXML
 
 
@@ -123,11 +123,9 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
 
     # Put rights in legalConstraints
     if 'rightsList' in record and len(record['rightsList']) > 0:
-        rightsElement = record['rightsList'][0]
-        rightsText = rightsElement.get('rights', '')
-        if 'rightsUri' in rightsElement and rightsElement['rightsUri']:
-            rightsText += ' (See also ' + rightsElement['rightsUri'] + ' )'
-        xml.setElementValue(root, parentXPaths['legalConstraints'], rightsText)
+        legalRightsText, accessRightsText = getRightsText(record['rightsList'])
+        xml.setElementValue(root, parentXPaths['legalConstraints'], legalRightsText)
+        xml.setElementValue(root, parentXPaths['accessConstraints'], accessRightsText)
 
     # Put publicationYear in CI_Citation/date
     xml.setElementValue(root, parentXPaths['publicationDate'], record["publicationYear"])
@@ -161,17 +159,21 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
         citedContacts.append(publisherRecord)
 
     if ('contributors' in record):
-        otherContacts, supportContacts = splitContributors(record["contributors"], roleMapping)
+        otherContacts, supportContacts, metadataContacts = splitContributors(record["contributors"], roleMapping)
         citedContacts.extend(otherContacts)
     else:
         supportContacts = []
+        metadataContacts = []
 
 
     # Fill in cited contacts.
     createResponsibleParties(root, parentXPaths['citedContact'], citedContacts)
 
-    # Fill in support contacts.
+    # Fill in Resource Support contacts.
     createResponsibleParties(root, parentXPaths['supportContact'], supportContacts)
+
+    # Fill in Resource Support contacts.
+    createResponsibleParties(root, parentXPaths['metadataContact'], metadataContacts)
 
     # Fill in geographical bounding box if provided. 
     if ('geoLocations' in record) and (len(record['geoLocations']) > 0) and ('geoLocationBox' in record['geoLocations'][0]):
@@ -216,16 +218,48 @@ def splitContributors(contributorList, roleMapping):
     contributorsWithType = [contributor for contributor in contributorList if 'contributorType' in contributor]
     citedContacts = []
     supportContacts = []
+    metadataContacts = []
     for contributor in contributorsWithType:
         name = contributor['name']
         roleDatacite = contributor['contributorType']
         roleISO = roleMapping[roleDatacite]
         contactRecord = {"name": name, "role": roleISO}
-        if roleISO == 'pointOfContact':
+        if roleDatacite == 'RelatedPerson':
+            metadataContacts.append(contactRecord)
+        elif roleDatacite == 'ContactPerson':
             supportContacts.append(contactRecord)
         else:
             citedContacts.append(contactRecord)
-    return citedContacts, supportContacts
+    return citedContacts, supportContacts, metadataContacts
+
+
+def getRightsText(rightsList):
+    """Apply the following rules to determine whether a given rights element belongs in Access Constraints or Legal Constraints:
+    
+    1. First look for RightsURI. If it is there, it is a "Legal Constraints" concept.
+    
+    2. If (1) fails, look for "Legal Constraints" or "Access Constraints" in the description text to disambiguate.
+    
+    3. If (2) fails, process them in order, with "Legal Constraints" mapping to the first one found.
+    """
+    legalRightsText = ""
+    accessRightsText = ""
+
+    for rightsElement in rightsList:
+        rightsText = rightsElement.get('rights', '')
+
+        if 'rightsUri' in rightsElement and rightsElement['rightsUri']:
+            legalRightsText += rightsText + ' (See also ' + rightsElement['rightsUri'] + ' )'
+        elif 'Legal Constraints' in rightsText:
+            legalRightsText += rightsText
+        elif 'Access Constraints' in rightsText:
+            accessRightsText += rightsText
+        elif not legalRightsText:
+            legalRightsText += rightsText
+        else:
+            accessRightsText += rightsText
+
+    return legalRightsText, accessRightsText
 
 
 def createResponsibleParties(root, contactXPath, contactList):

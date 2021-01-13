@@ -171,6 +171,12 @@ def appendContactData(xml_root, contactXPath, contactData, impliedRoleValue = No
     contactParent.insert(contactIndex + 1, elementCopy)
 
 
+def fixKeywordChars(keyword):
+    """DataCite sometimes inserts '&gt' instead of '>' for GCMD, so we fix this here."""
+    fixedKeyword = keyword.replace('&gt', '>')
+    return fixedKeyword
+
+
 def addKeywords(xml_root, keywordXPath, keywordList):
     ''' Add GCMD Keyword elements, one element per list item, to the keyword section of the XML document. '''
     keywordElement, keywordParent, originalIndex = xml.cutElement(xml_root, keywordXPath, True)
@@ -181,10 +187,12 @@ def addKeywords(xml_root, keywordXPath, keywordList):
         return
     insertCounter = 0
     for keyword in keywordList:
+        fixedKeyword = fixKeywordChars(keyword)
         elementCopy = xml.copyElement(keywordElement)
-        xml.setElementValue(elementCopy, childXPaths['string'], keyword)
+        xml.setElementValue(elementCopy, childXPaths['string'], fixedKeyword)
         keywordParent.insert(originalIndex + insertCounter, elementCopy)
         insertCounter += 1
+
 
 def addRelatedLinks(xml_root, relatedLinkXPath, relatedLinks):
     ''' Add related link XML elements using a list of related link records. '''
