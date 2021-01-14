@@ -3,10 +3,10 @@
 A python command-line program for translating JSON metadata records to XML, conforming to these metadata standards:
 
 * Output files: ISO 19139:2005 standard  (XML).
-* Input files: DataCite 3.4 metadata standard (JSON).
-* Input files: NCAR DSET Metadata Dialect, version 10 (JSON). 
+* Input files: DataCite 3.4 or 4.0 metadata standard (JSON).
+* Input files: NCAR DSET Metadata Dialect, version 12 (JSON). 
 
-These scripts assume python 2.7 is being used; using python 3 is untested.
+These scripts require python 3.
 
 The following python packages are required.
 
@@ -58,7 +58,7 @@ Anaconda can be downloaded here:
 
 https://www.anaconda.com/download/#macos
 
-You can probably download either the Python 3 DMG installer or the Python 2.7 DMG installer, but only the 2.7 installer has been tested, so it is the safer choice. 
+You should choose to download Python 3 DMG installer.
 
 Once Anaconda is installed, you should be able to run the Anaconda equivalent of the "virtualenv" command: 
 
