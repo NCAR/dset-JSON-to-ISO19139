@@ -172,8 +172,8 @@ def appendContactData(xml_root, contactXPath, contactData, impliedRoleValue = No
 
 
 def fixKeywordChars(keyword):
-    """DataCite sometimes inserts '&gt' instead of '>' for GCMD, so we fix this here."""
-    fixedKeyword = keyword.replace('&gt', '>')
+    """DataCite sometimes inserts '&gt;' instead of '>' for GCMD, so we fix this here."""
+    fixedKeyword = keyword.replace('&gt;', '>')
     return fixedKeyword
 
 
