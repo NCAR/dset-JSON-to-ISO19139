@@ -9,7 +9,7 @@ import os.path
 import api.inputjson as input_json
 import api.translate.datacite as translate
 
-__version_info__ = ('2021','01','13')
+__version_info__ = ('2021', '01', '13')
 __version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''
@@ -24,12 +24,12 @@ Example usage:
 
 Program Version: '''
 
+
 class PrintHelpOnErrorParser(argparse.ArgumentParser):
-    def error(self, message):
-        sys.stderr.write('error: %s\n' % message)
+    def error(self, error_message):
+        sys.stderr.write('error: %s\n' % error_message)
         self.print_help()
         sys.exit(2)
-
 
 
 #
@@ -38,16 +38,15 @@ class PrintHelpOnErrorParser(argparse.ArgumentParser):
 programHelp = PROGRAM_DESCRIPTION + __version__
 parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--template", nargs=1, help="custom ISO template to use from the 'templates' folder")
-parser.add_argument('--version', action='version', version="%(prog)s ("+__version__+")")
+parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 
 requiredArgs = parser.add_argument_group('required arguments')
 requiredArgs.add_argument("--doi", nargs=1, required=True, help="Digital Object Identifier (DOI)")
 
 args = parser.parse_args()
 
-
 # Check for ISO 19139 template existence.
-DEFAULT_OUTPUT_TEMPLATE= 'dset_min_geo.xml'
+DEFAULT_OUTPUT_TEMPLATE = 'dset_min_geo.xml'
 
 templateFilePath = input_json.getTemplateFilePath(args.template, DEFAULT_OUTPUT_TEMPLATE)
 if not os.path.isfile(templateFilePath):
@@ -58,7 +57,6 @@ if not os.path.isfile(templateFilePath):
 doi = args.doi[0]
 record = input_json.getDataCiteRecords(doi)
 
-
 #
 #  Perform the translation.
 #
@@ -67,4 +65,3 @@ if len(record) > 0:
     print(output, file=sys.stdout)
 else:
     print(("DOI " + doi + " was not found.\n"), file=sys.stderr)
-

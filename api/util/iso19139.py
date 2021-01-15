@@ -39,7 +39,7 @@ childXPaths =  {
 #
 
 def modifyOnlineResource(resourceElement, url, name='', description=''):
-    ''' Modify contents of an "onLineResource" ISO element '''
+    """ Modify contents of an "onLineResource" ISO element """
     elementURL = xml.getElement(resourceElement, childXPaths['linkage'])
     xml.setTextOrMarkMissing(elementURL, url)
 
@@ -51,7 +51,7 @@ def modifyOnlineResource(resourceElement, url, name='', description=''):
 
 
 def modifyBoundingBox(xml_root, bboxXPath, bboxRecord):
-    ''' Modify contents of a "geographic bounding box" ISO element '''
+    """ Modify contents of a "geographic bounding box" ISO element """
     bboxElement = xml.getElement(xml_root, bboxXPath)
 
     elementWest = xml.getElement(bboxElement, childXPaths['westLong'])
@@ -68,7 +68,7 @@ def modifyBoundingBox(xml_root, bboxXPath, bboxRecord):
 
 
 def modifyTemporalExtent(xml_root, extentXPath, extentRecord):
-    ''' Modify contents of a "temporal extent" ISO element.'''
+    """ Modify contents of a "temporal extent" ISO element."""
     indeterminatePositions = {'before', 'after', 'now', 'unknown'}
 
     extentElement = xml.getElement(xml_root, extentXPath)
@@ -84,8 +84,8 @@ def modifyTemporalExtent(xml_root, extentXPath, extentRecord):
 
 
 def modifyContactData(contactElement, contactData, impliedRoleValue = None):
-    ''' Modify contents of a "contact" ISO element, a.k.a ResponsibleParty element. 
-        Modify all values, substituting empty text where values are not given. '''
+    """ Modify contents of a "contact" ISO element, a.k.a ResponsibleParty element.
+        Modify all values, substituting empty text where values are not given. """
 
     #  For some contact elements, a specific role value is implied.  Set this value if given.
     if impliedRoleValue:
@@ -114,8 +114,8 @@ def modifyContactData(contactElement, contactData, impliedRoleValue = None):
 
 
 def modifyContactDataSelectively(contactElement, contactData):
-    ''' Modify contents of a "contact" XML element, a.k.a ResponsibleParty element.
-        Only override XML values if fill values are given, so XML template values are unchanged. '''
+    """ Modify contents of a "contact" XML element, a.k.a ResponsibleParty element.
+        Only override XML values if fill values are given, so XML template values are unchanged. """
     nameValue = contactData.get('name', None)
     if nameValue:
         element = xml.getElement(contactElement, childXPaths['individual'])
@@ -148,7 +148,7 @@ def modifyContactDataSelectively(contactElement, contactData):
 #
 
 def addSpatialResolutionDistances(xml_root, resolutionXPath, resolutionList):
-    ''' Append a number of Spatial Resolution "distance" ISO elements. '''
+    """ Append a number of Spatial Resolution "distance" ISO elements. """
     insertCounter = 0
     resolutionElement, resolutionParent, elementIndex = xml.cutElement(xml_root, resolutionXPath, True)
     for resolution in resolutionList:
@@ -162,7 +162,7 @@ def addSpatialResolutionDistances(xml_root, resolutionXPath, resolutionList):
 
 
 def appendContactData(xml_root, contactXPath, contactData, impliedRoleValue = None):
-    ''' Append a new contact element to a collection of ResponsibleParty elements '''
+    """ Append a new contact element to a collection of ResponsibleParty elements """
     contactElement = xml.getLastElement(xml_root, contactXPath)
     contactParent = contactElement.getparent()
     contactIndex = contactParent.index(contactElement)
@@ -178,7 +178,7 @@ def fixKeywordChars(keyword):
 
 
 def addKeywords(xml_root, keywordXPath, keywordList):
-    ''' Add GCMD Keyword elements, one element per list item, to the keyword section of the XML document. '''
+    """ Add GCMD Keyword elements, one element per list item, to the keyword section of the XML document. """
     keywordElement, keywordParent, originalIndex = xml.cutElement(xml_root, keywordXPath, True)
     if not keywordList:
         keywordSection = keywordParent.getparent()
@@ -195,7 +195,7 @@ def addKeywords(xml_root, keywordXPath, keywordList):
 
 
 def addRelatedLinks(xml_root, relatedLinkXPath, relatedLinks):
-    ''' Add related link XML elements using a list of related link records. '''
+    """ Add related link XML elements using a list of related link records. """
     emptyLinkElement, parent, originalIndex = xml.cutElement(xml_root, relatedLinkXPath, True)
     insertCounter = 0
     for link in relatedLinks:

@@ -21,11 +21,10 @@ parentXPaths = {
 }
 
 
-#def transformRequiredFields(root, emptyContactElement, citedContactParent, record):
 def transformRequiredFields(root, record):
-    '''Transform fields that are required according to the DSET Metadata Dialect.  
+    """Transform fields that are required according to the DSET Metadata Dialect.
        Not all required fields must be present in the record because the ISO template may have default values for them.
-    '''
+    """
 
     # - Metadata Record ID: not repeatable
     assert 'metadata_id' in record
@@ -63,7 +62,6 @@ def transformRequiredFields(root, record):
     authors = record['author']
     firstLoopIteration = True
     for author in authors:
-        #iso.appendContactData(citedContactParent, emptyContactElement, author, 'author')
         if firstLoopIteration:
             contactElement = xml.getElement(root, parentXPaths['citedContact'])
             iso.modifyContactData(contactElement, author, 'author')
@@ -73,7 +71,6 @@ def transformRequiredFields(root, record):
 
     # - Publisher: not repeatable
     if 'publisher' in record:
-        #iso.appendContactData(citedContactParent, emptyContactElement, record['publisher'], 'publisher')
         iso.appendContactData(root, parentXPaths['citedContact'], record['publisher'], 'publisher')
 
     # - Abstract: not repeatable

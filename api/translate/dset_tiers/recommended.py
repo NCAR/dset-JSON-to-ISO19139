@@ -20,7 +20,6 @@ parentXPaths = {
 }
 
 
-#def transformRecommendedFields(root, emptyContactElement, citedContactParent, record):
 def transformRecommendedFields(root, record):
 
     # - Other Responsible Individual/Organization: repeatable

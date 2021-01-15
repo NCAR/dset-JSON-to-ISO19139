@@ -58,7 +58,7 @@ parentXPaths = {
 
 
 def translateDataCiteRecords():
-    ''' batch translate DataCite Records and save to output directory. '''
+    """ batch translate DataCite Records and save to output directory. """
 
     # Get records
     records = getDataCiteRecords()
@@ -83,7 +83,7 @@ def translateDataCiteRecords():
 
 
 def translateDataCiteRecord(record, templateFile):
-    ''' Return ISO 19139 translation for a single DataCite record. '''
+    """ Return ISO 19139 translation for a single DataCite record. """
     recordISO, recordID = transformDataCiteToISO(record, templateFile, roleMappingDataCiteToISO)
 
     headerXML = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -205,11 +205,26 @@ def getRelatedIdentifierParts(relatedIdentifier):
 
 
 def getAuthors(record):
-    ''' Convert the list of creators into a list of author records. '''
+    """ Convert the list of creators into a list of author records. """
     creatorList = record["creators"]
     authorList = [{"name": creator['name'], "role": 'author'} for creator in creatorList]
     #sys.stderr.write('authorList : %s\n' % authorList)
     return authorList
+
+def extractEmailFromDataciteName(name):
+    """Detect if the contributor has an email address as part of the name.
+       * If so, split the name into separate parts.
+       * If not, return the original name and an empty string for the email.
+    """
+    nameSplitOnComma = name.split(',')
+    hasOneComma = len(nameSplitOnComma) == 2
+    hasAtSign = hasOneComma and len(nameSplitOnComma[1].split('@')) == 2
+    if hasAtSign:
+        name = nameSplitOnComma[0].strip()
+        email = nameSplitOnComma[1].strip()
+    else:
+        email = ''
+    return name, email
 
 
 def splitContributors(contributorList, roleMapping):
@@ -220,10 +235,11 @@ def splitContributors(contributorList, roleMapping):
     supportContacts = []
     metadataContacts = []
     for contributor in contributorsWithType:
-        name = contributor['name']
+        #name = contributor['name']
+        name, email = extractEmailFromDataciteName(contributor['name'])
         roleDatacite = contributor['contributorType']
         roleISO = roleMapping[roleDatacite]
-        contactRecord = {"name": name, "role": roleISO}
+        contactRecord = {"name": name, "role": roleISO, "email": email}
         if roleDatacite == 'RelatedPerson':
             metadataContacts.append(contactRecord)
         elif roleDatacite == 'ContactPerson':
@@ -263,7 +279,7 @@ def getRightsText(rightsList):
 
 
 def createResponsibleParties(root, contactXPath, contactList):
-    ''' Insert XML elements for a list of contact records. '''
+    """ Insert XML elements for a list of contact records. """
     contactTemplate, contactParent, contactIndex = xml.cutElement(root, contactXPath, True)
     insertCounter = 0
     for contactRecord in contactList:
