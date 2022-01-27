@@ -5,12 +5,18 @@
 #              1k0w-2272 chk8-fx07 rgpy-g566 8r12-hs65 7m8g-ja33 qan9-we09"
 
 # February 2021
-DOI_SUFFIXES="4xv0-fg55 0dxg-nn57 1a8d-yh72"
+#DOI_SUFFIXES="4xv0-fg55 0dxg-nn57 1a8d-yh72"
+
+# December 2021
+DOI_SUFFIXES="10.26024/sprq-2d04"
 
 echo "DOI_SUFFIXES= " $DOI_SUFFIXES
 
 
 for f in $DOI_SUFFIXES; do
-   echo "Processing 10.5065/${f}..."
-   python datacite2iso.py  --doi 10.5065/${f} > test_${f}.xml
+   #echo "Processing 10.5065/${f}..."
+   #python datacite2iso.py  --doi 10.5065/${f} > test_${f}.xml
+   echo "Processing ${f}..."
+   suffix=`echo ${f} | cut -d / -f 2`
+   python datacite2iso.py  --doi ${f} > test_${suffix}.xml
 done
