@@ -34,7 +34,7 @@ def getXMLTree(source):
         etree = ElementTree.parse(source)
         root = etree.getroot()
     except Exception:
-        print(f"Unable to parse charset for {source}; skipping.")
+        print(f"Unable to parse {source}")
         root = None
     return root
 
@@ -110,9 +110,10 @@ def printResourceFormats(file):
     formatName = 'gmd:MD_Format/gmd:name/gco:CharacterString'
 
     tree = getXMLTree(file)
-    formats = getChildTextList(resourceFormat, formatName, tree)
-    for format in formats:
-        print(format, file=sys.stdout)
+    if tree is not None:
+        formats = getChildTextList(resourceFormat, formatName, tree)
+        for format in formats:
+            print(format, file=sys.stdout)
 
 
 # We need XML namespace mappings in order to search the ISO element tree
