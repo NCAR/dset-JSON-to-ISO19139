@@ -30,8 +30,12 @@ class PrintHelpOnErrorParser(argparse.ArgumentParser):
 # Tree-wide operations
 #
 def getXMLTree(source):
-    tree = ElementTree.parse(source)
-    root = tree.getroot()
+    try:
+        etree = ElementTree.parse(source)
+        root = etree.getroot()
+    except Exception:
+        print(f"Unable to parse charset for {source}; skipping.")
+        root = None
     return root
 
 
@@ -67,16 +71,48 @@ def getFirstChildTextForRole(roleString, contactXPath, childXPath, roleCodeXPath
 
 
 def printPublisher(file):
-    tree = getXMLTree(file)
     citedContact = '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation' \
                    '/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty'
     elementsToSearch = [childXPaths['individual'], childXPaths['organisation']]
 
-    for element in elementsToSearch:
-        publisher_text = getFirstChildTextForRole('publisher', citedContact, element, childXPaths['roleCode'], tree)
-        if publisher_text:
-            print(str(publisher_text), file=sys.stdout)
-            break
+    tree = getXMLTree(file)
+    if tree is not None:
+        for element in elementsToSearch:
+            publisher_text = getFirstChildTextForRole('publisher', citedContact, element, childXPaths['roleCode'], tree)
+            if publisher_text:
+                print(str(publisher_text), file=sys.stdout)
+                break
+        if len(publisher_text) == 0:
+            print(f"Warning: publisher string not found for {file}")
+
+
+
+def getChildTextList(parentXPath, childXPath, xml_tree):
+    ''' Loop over children of a parent XPath and return the text associated with all child elements.
+        If no children are found or no child element has text, return the empty list.
+    '''
+    childTextList = []
+    parentElements = xml_tree.xpath(parentXPath, namespaces=ISO_NAMESPACES)
+
+    for parentElement in parentElements:
+        childElements = parentElement.xpath(childXPath, namespaces=ISO_NAMESPACES)
+
+        for childElement in childElements:
+            if childElement.text:
+                childTextList.append(childElement.text)
+
+    return childTextList
+
+
+
+def printResourceFormats(file):
+    resourceFormat = '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceFormat'
+    formatName = 'gmd:MD_Format/gmd:name/gco:CharacterString'
+
+    tree = getXMLTree(file)
+    formats = getChildTextList(resourceFormat, formatName, tree)
+    for format in formats:
+        print(format, file=sys.stdout)
 
 
 # We need XML namespace mappings in order to search the ISO element tree
@@ -115,5 +151,6 @@ else:
     checkDirectoryExistence(args.inputDir[0], 'Input directory')
     from pathlib import Path
     for path in Path(args.inputDir[0]).rglob('*.xml'):
-        printPublisher(path.as_posix())
+        #printPublisher(path.as_posix())
+        printResourceFormats(path.as_posix())
 
