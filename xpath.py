@@ -3,6 +3,7 @@ import sys
 from lxml import etree as ElementTree  # ISO XML parser
 
 import os.path
+from pathlib import Path
 
 __version_info__ = ('2022', '01', '27')
 __version__ = '-'.join(__version_info__)
@@ -116,7 +117,62 @@ def printResourceFormats(file):
             print(format, file=sys.stdout)
 
 
-# We need XML namespace mappings in order to search the ISO element tree
+def getDataCiteResourceType(thesaurusXPath, keywordXPath, xml_tree):
+    """ Get the first resource type keyword by searching thesaurus titles containing "Resource Type".
+        Strip whitespace and return lowercase version of string.
+    """
+    resourceType = ''
+    for thesaurus in xml_tree.xpath(thesaurusXPath, namespaces=ISO_NAMESPACES):
+        if "Resource Type" in thesaurus.text:
+            keywordElement = thesaurus.getparent().getparent().getparent().getparent()
+
+            for keyword in keywordElement.xpath(keywordXPath, namespaces=ISO_NAMESPACES):
+                if keyword.text:
+                    resourceType = keyword.text.strip().lower()
+                    # Substitute ambiguous keywords with more understandable versions.
+                    if resourceType == 'text':
+                        resourceType = 'publication'
+
+                    # Return the first match found.
+                    return resourceType
+
+    return resourceType
+
+
+def isDatasetRecord(tree):
+    resourceType ='/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString'
+    keyword = 'gmd:keyword/gco:CharacterString'
+    resourceType = getDataCiteResourceType(resourceType, keyword, tree)
+
+    return (resourceType.lower() == 'dataset')
+
+
+def printGeoExtentExists(file, checkNonDatasets=True):
+
+    geoExtent= ('/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/' +
+                'gmd:geographicElement/gmd:EX_GeographicBoundingBox')
+    tree = getXMLTree(file)
+    isDataset = tree is not None and isDatasetRecord(tree)
+    checkRecord = isDataset or checkNonDatasets
+
+    if not isDataset:
+        message = "Not_a_dataset_record"
+    elif isDataset or checkRecord:
+        geoElement = tree.xpath(geoExtent, namespaces=ISO_NAMESPACES)
+        if geoElement:
+            message = "Extent_exists"
+        else:
+            message = "Extent_missing"
+    else:
+        # If this statement is reached, there is a logic error.
+        assert False
+
+    # print out the XML file name as a something that could be stripped off later.
+    print(f'{message}  {file}', file=sys.stdout)
+
+
+
+    # We need XML namespace mappings in order to search the ISO element tree
 ISO_NAMESPACES = {'gmd': 'http://www.isotc211.org/2005/gmd',
                   'xlink': 'http://www.w3.org/1999/xlink',
                   'gco': 'http://www.isotc211.org/2005/gco',
@@ -135,7 +191,7 @@ programHelp = PROGRAM_DESCRIPTION + __version__
 parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('--inputDir', nargs=1, help="base dir for XML files")
-parser.add_argument('--xpath', nargs=1, help="xpath to search for")
+parser.add_argument('--file', nargs=1, help="XML file to search")
 parser.add_argument('--attribute', nargs=1, help="limit output to elements with the given attribute value")
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 args = parser.parse_args()
@@ -145,13 +201,21 @@ args = parser.parse_args()
 ### START OF MAIN PROGRAM
 ###
 
-readSTDIN = (args.inputDir == None)
-if readSTDIN:
-    tree = getXMLTree(sys.stdin)
+def performOperation(file):
+    '''Change this Highest-level function to define the program's current operation.
+    '''
+    #printPublisher(file)
+    #printResourceFormats(file)
+    printGeoExtentExists(file)
+
+
+# readSTDIN = (args.inputDir == None)
+# if readSTDIN:
+#     tree = getXMLTree(sys.stdin)
+readFile = (args.file is not None)
+if readFile:
+    performOperation(args.file[0])
 else:
     checkDirectoryExistence(args.inputDir[0], 'Input directory')
-    from pathlib import Path
     for path in Path(args.inputDir[0]).rglob('*.xml'):
-        #printPublisher(path.as_posix())
-        printResourceFormats(path.as_posix())
-
+        performOperation(path.as_posix())
