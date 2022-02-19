@@ -213,7 +213,7 @@ def performOperation(file):
     # printPublisher(file)
     # printResourceFormats(file)
 
-    # Decide whether to check if it's a dataset record or not
+    # Decide whether to print stats for non-dataset records, which can't have spatio-temporal information.
     checkNonDatasets = False
     # printXPathExists(file, [xpaths['geoExtent']], checkNonDatasets)         # check geographical extent existence
     # printXPathExists(file, [xpaths['timeExtent']], checkNonDatasets)      # check temporal extent existence
