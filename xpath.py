@@ -12,6 +12,29 @@ PROGRAM_DESCRIPTION = '''
     A utility for extracting xml tag values from stdin or a directory with files.
  '''
 
+xpaths = {"resourceType": ('/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords' +
+                           '/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString'),
+          "geoExtent": ('/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent' +
+                        '/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox'),
+          "timeExtent": ('/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent' +
+                         '/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent'),
+          "resourceFormat": '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceFormat',
+          }
+
+childXPaths = {
+    'individual': 'gmd:individualName/gco:CharacterString',
+    'organisation': 'gmd:organisationName/gco:CharacterString',
+    'roleCode': 'gmd:role/gmd:CI_RoleCode',
+    'keyword': 'gmd:keyword/gco:CharacterString',
+    'formatName': 'gmd:MD_Format/gmd:name/gco:CharacterString'
+}
+
+# We need XML namespace mappings in order to search the ISO element tree
+ISO_NAMESPACES = {'gmd': 'http://www.isotc211.org/2005/gmd',
+                  'xlink': 'http://www.w3.org/1999/xlink',
+                  'gco': 'http://www.isotc211.org/2005/gco',
+                  'gml': 'http://www.opengis.net/gml'}
+
 
 def checkDirectoryExistence(directoryPath, directoryType):
     """ generate an error if directory does not exist. """
@@ -75,6 +98,7 @@ def printPublisher(file):
     citedContact = '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation' \
                    '/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty'
     elementsToSearch = [childXPaths['individual'], childXPaths['organisation']]
+    publisher_text = []
 
     tree = getXMLTree(file)
     if tree is not None:
@@ -87,11 +111,10 @@ def printPublisher(file):
             print(f"Warning: publisher string not found for {file}")
 
 
-
 def getChildTextList(parentXPath, childXPath, xml_tree):
-    ''' Loop over children of a parent XPath and return the text associated with all child elements.
+    """ Loop over children of a parent XPath and return the text associated with all child elements.
         If no children are found or no child element has text, return the empty list.
-    '''
+    """
     childTextList = []
     parentElements = xml_tree.xpath(parentXPath, namespaces=ISO_NAMESPACES)
 
@@ -105,16 +128,12 @@ def getChildTextList(parentXPath, childXPath, xml_tree):
     return childTextList
 
 
-
 def printResourceFormats(file):
-    resourceFormat = '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceFormat'
-    formatName = 'gmd:MD_Format/gmd:name/gco:CharacterString'
-
     tree = getXMLTree(file)
     if tree is not None:
-        formats = getChildTextList(resourceFormat, formatName, tree)
-        for format in formats:
-            print(format, file=sys.stdout)
+        formats = getChildTextList(xpaths["resourceFormat"], childXPaths["formatName"], tree)
+        for fmt in formats:
+            print(fmt, file=sys.stdout)
 
 
 def getDataCiteResourceType(thesaurusXPath, keywordXPath, xml_tree):
@@ -140,29 +159,29 @@ def getDataCiteResourceType(thesaurusXPath, keywordXPath, xml_tree):
 
 
 def isDatasetRecord(tree):
-    resourceType ='/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString'
-    keyword = 'gmd:keyword/gco:CharacterString'
-    resourceType = getDataCiteResourceType(resourceType, keyword, tree)
-
-    return (resourceType.lower() == 'dataset')
+    resourceType = getDataCiteResourceType(xpaths["resourceType"], childXPaths["keyword"], tree)
+    return resourceType.lower() == 'dataset'
 
 
-def printGeoExtentExists(file, checkNonDatasets=True):
-
-    geoExtent= ('/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/' +
-                'gmd:geographicElement/gmd:EX_GeographicBoundingBox')
+def printXPathExists(file, xpath_list, checkNonDatasets=True):
     tree = getXMLTree(file)
-    isDataset = tree is not None and isDatasetRecord(tree)
-    checkRecord = isDataset or checkNonDatasets
+    isIsoRecord = tree is not None
+    isDataset = isIsoRecord and isDatasetRecord(tree)
 
-    if not isDataset:
-        message = "Not_a_dataset_record"
-    elif isDataset or checkRecord:
-        geoElement = tree.xpath(geoExtent, namespaces=ISO_NAMESPACES)
-        if geoElement:
-            message = "Extent_exists"
+    if not isIsoRecord:
+        message = "not_a_iso_record"
+    elif not (isDataset or checkNonDatasets):
+        message = "not_a_dataset_record"
+    elif isDataset or checkNonDatasets:
+        exists = True
+        for xpath in xpath_list:
+            xmlElement = tree.xpath(xpath, namespaces=ISO_NAMESPACES)
+            if not xmlElement:
+                exists = False
+        if exists:
+            message = "xpath_exists"
         else:
-            message = "Extent_missing"
+            message = "xpath_missing"
     else:
         # If this statement is reached, there is a logic error.
         assert False
@@ -170,19 +189,6 @@ def printGeoExtentExists(file, checkNonDatasets=True):
     # print out the XML file name as a something that could be stripped off later.
     print(f'{message}  {file}', file=sys.stdout)
 
-
-
-    # We need XML namespace mappings in order to search the ISO element tree
-ISO_NAMESPACES = {'gmd': 'http://www.isotc211.org/2005/gmd',
-                  'xlink': 'http://www.w3.org/1999/xlink',
-                  'gco': 'http://www.isotc211.org/2005/gco',
-                  'gml': 'http://www.opengis.net/gml'}
-
-childXPaths = {
-    'individual': 'gmd:individualName/gco:CharacterString',
-    'organisation': 'gmd:organisationName/gco:CharacterString',
-    'roleCode': 'gmd:role/gmd:CI_RoleCode',
-}
 
 #
 #  Parse and validate command line options.
@@ -202,11 +208,19 @@ args = parser.parse_args()
 ###
 
 def performOperation(file):
-    '''Change this Highest-level function to define the program's current operation.
-    '''
-    #printPublisher(file)
-    #printResourceFormats(file)
-    printGeoExtentExists(file)
+    """ Change this Highest-level function to define the program's current operation.
+    """
+    # printPublisher(file)
+    # printResourceFormats(file)
+
+    # Decide whether to check if it's a dataset record or not
+    checkNonDatasets = False
+    # printXPathExists(file, [xpaths['geoExtent']], checkNonDatasets)         # check geographical extent existence
+    # printXPathExists(file, [xpaths['timeExtent']], checkNonDatasets)      # check temporal extent existence
+    # printXPathExists(file, [xpaths['resourceFormat']], checkNonDatasets)  # check resource format existence
+
+    # check spatio-temporal extent existence
+    printXPathExists(file, [xpaths['timeExtent'], xpaths['geoExtent']], checkNonDatasets)
 
 
 # readSTDIN = (args.inputDir == None)
