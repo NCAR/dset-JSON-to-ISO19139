@@ -211,16 +211,21 @@ def performOperation(file):
     """ Change this Highest-level function to define the program's current operation.
     """
     # printPublisher(file)
-    # printResourceFormats(file)
+    #printResourceFormats(file)
 
     # Decide whether to print stats for non-dataset records, which can't have spatio-temporal information.
     checkNonDatasets = False
+    #checkNonDatasets = True
+
     # printXPathExists(file, [xpaths['geoExtent']], checkNonDatasets)         # check geographical extent existence
     # printXPathExists(file, [xpaths['timeExtent']], checkNonDatasets)      # check temporal extent existence
     # printXPathExists(file, [xpaths['resourceFormat']], checkNonDatasets)  # check resource format existence
 
     # check spatio-temporal extent existence
-    printXPathExists(file, [xpaths['timeExtent'], xpaths['geoExtent']], checkNonDatasets)
+    #printXPathExists(file, [xpaths['timeExtent'], xpaths['geoExtent']], checkNonDatasets)
+
+    # check resource format existence
+    printXPathExists(file, [xpaths['resourceFormat']], checkNonDatasets)
 
 
 # readSTDIN = (args.inputDir == None)
