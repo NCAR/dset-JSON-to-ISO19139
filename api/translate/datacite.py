@@ -1,59 +1,57 @@
-
 import sys
 from datetime import datetime
 
 import api.util.xml as xml
 import api.util.iso19139 as iso
 
-
-
 roleMappingDataCiteToISO = {
-      "Creator":               "author",
-      "Publisher":             "publisher",
-      "ContactPerson":         "pointOfContact",  ## Any ContactPerson should be considered a Resource Support Contact
-      "DataCollector":         "",
-      "DataCurator":           "custodian",
-      "DataManager":           "custodian",
-      "Distributor":           "distributor",
-      "Editor":                "editor",
-      "Funder":                "funder",
-      "HostingInstitution":    "resourceProvider",
-      "Producer":              "mediator",
-      "ProjectLeader":         "principalInvestigator",
-      "ProjectManager":        "",
-      "ProjectMember":         "contributor",
-      "RegistrationAgency":    "",
-      "RegistrationAuthority": "",
-      "RelatedPerson":         "pointOfContact",  ##  Any RelatedPerson should be considered a Metadata Contact
-      "Researcher":            "contributor",
-      "ResearchGroup":         "collaborator",
-      "RightsHolder":          "rightsHolder",
-      "Sponsor":               "sponsor",
-      "Supervisor":            "",
-      "WorkPackageLeader":     "",
-      "Other":                 "contributor",
+    "Creator": "author",
+    "Publisher": "publisher",
+    "ContactPerson": "pointOfContact",  ## Any ContactPerson should be considered a Resource Support Contact
+    "DataCollector": "",
+    "DataCurator": "custodian",
+    "DataManager": "custodian",
+    "Distributor": "distributor",
+    "Editor": "editor",
+    "Funder": "funder",
+    "HostingInstitution": "resourceProvider",
+    "Producer": "mediator",
+    "ProjectLeader": "principalInvestigator",
+    "ProjectManager": "",
+    "ProjectMember": "contributor",
+    "RegistrationAgency": "",
+    "RegistrationAuthority": "",
+    "RelatedPerson": "pointOfContact",  ##  Any RelatedPerson should be considered a Metadata Contact
+    "Researcher": "contributor",
+    "ResearchGroup": "collaborator",
+    "RightsHolder": "rightsHolder",
+    "Sponsor": "sponsor",
+    "Supervisor": "",
+    "WorkPackageLeader": "",
+    "Other": "contributor",
 }
 
-
 parentXPaths = {
-     'fileIdentifier'      : '/gmd:MD_Metadata/gmd:fileIdentifier/gco:CharacterString',
-     'assetType'           : '/gmd:MD_Metadata/gmd:hierarchyLevel/gmd:MD_ScopeCode',
-     'metadataContact'     : '/gmd:MD_Metadata/gmd:contact/gmd:CI_ResponsibleParty',
-     'metadataDate'        : '/gmd:MD_Metadata/gmd:dateStamp/gco:DateTime',
-     'landingPage'         : '/gmd:MD_Metadata/gmd:dataSetURI/gco:CharacterString',
-     'title'               : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString',
-     'publicationDate'     : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date',
-     'citedContact'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty',
-     'abstract'            : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract',
-     'supportContact'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact',
-     'resourceType'        : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "Resource Type")]/../../../../gmd:keyword/gco:CharacterString',
-     'keyword'             : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../gmd:keyword',
-     'keywordCutElement'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../../../gmd:descriptiveKeywords',
-     'relatedLink'         : '/gmd:MD_Metadata/gmd:metadataExtensionInfo',
-     'legalConstraints'    : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useLimitation/gco:CharacterString',
-     'accessConstraints'   : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString',
-     'geoExtent'           : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox',
-     'geoExtentCutElement' : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent',
+    'fileIdentifier': '/gmd:MD_Metadata/gmd:fileIdentifier/gco:CharacterString',
+    'assetType': '/gmd:MD_Metadata/gmd:hierarchyLevel/gmd:MD_ScopeCode',
+    'metadataContact': '/gmd:MD_Metadata/gmd:contact/gmd:CI_ResponsibleParty',
+    'metadataDate': '/gmd:MD_Metadata/gmd:dateStamp/gco:DateTime',
+    'landingPage': '/gmd:MD_Metadata/gmd:dataSetURI/gco:CharacterString',
+    'title': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString',
+    'publicationDate': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date',
+    'citedContact': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty',
+    'abstract': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract',
+    'supportContact': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact',
+    'resourceType': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "Resource Type")]/../../../../gmd:keyword/gco:CharacterString',
+    'keyword': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../gmd:keyword',
+    'keywordCutElement': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../../../gmd:descriptiveKeywords',
+    'relatedLink': '/gmd:MD_Metadata/gmd:metadataExtensionInfo',
+    'legalConstraints': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useLimitation/gco:CharacterString',
+    'accessConstraints': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString',
+    'geoExtent': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox',
+    'geoExtentCutElement': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement',
+    'temporalExtent': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent',
+    'temporalExtentCutElement': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement',
 }
 
 
@@ -91,7 +89,6 @@ def translateDataCiteRecord(record, templateFile):
     return outputXML
 
 
-
 def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Load the ISO template file as an XML element tree
     root = xml.getXMLTree(templateFileISO)
@@ -105,7 +102,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     xml.setElementValue(root, parentXPaths['metadataDate'], currentTime)
 
     # Put resourceTypeGeneral in hierarchyLevelName
-    assert 'resourceTypeGeneral' in record['types'] 
+    assert 'resourceTypeGeneral' in record['types']
     xml.setElementValue(root, parentXPaths['resourceType'], record['types']['resourceTypeGeneral'])
 
     # Put title in title
@@ -117,7 +114,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     if 'description' in record['descriptions'][0]:
         fullXPath = parentXPaths['abstract'] + '/gco:CharacterString'
         descriptionValue = record['descriptions'][0]['description']
-        xml.setElementValue(root, fullXPath, descriptionValue )
+        xml.setElementValue(root, fullXPath, descriptionValue)
     else:
         xml.cutElement(parentXPaths['abstract'])
 
@@ -165,7 +162,6 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
         supportContacts = []
         metadataContacts = []
 
-
     # Fill in cited contacts.
     createResponsibleParties(root, parentXPaths['citedContact'], citedContacts)
 
@@ -175,32 +171,60 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Fill in Resource Support contacts.
     createResponsibleParties(root, parentXPaths['metadataContact'], metadataContacts)
 
-    # Fill in geographical bounding box if provided. 
-    if ('geoLocations' in record) and (len(record['geoLocations']) > 0) and ('geoLocationBox' in record['geoLocations'][0]):
-        #sys.stderr.write('Saw Geo Data: %s\n' % rightsText)
+    # Fill in geographical bounding box if provided. Otherwise, delete the empty XML element to keep the XML valid.
+    if ('geoLocations' in record) and (len(record['geoLocations']) > 0) and (
+            'geoLocationBox' in record['geoLocations'][0]):
         bbox = record['geoLocations'][0]['geoLocationBox']
-        bbox_new = {'west':  bbox['westBoundLongitude'], 
-                    'east':  bbox['eastBoundLongitude'], 
-                    'north': bbox['northBoundLatitude'], 
+        bbox_new = {'west': bbox['westBoundLongitude'],
+                    'east': bbox['eastBoundLongitude'],
+                    'north': bbox['northBoundLatitude'],
                     'south': bbox['southBoundLatitude']
                     }
         iso.modifyBoundingBox(root, parentXPaths['geoExtent'], bbox_new)
     else:
         xml.cutElement(root, parentXPaths['geoExtentCutElement'])
 
+    # Fill in temporal extent if provided.  Otherwise, delete the empty XML element to keep the XML valid.
+    temporalExtentExists = False
+    if ('dates' in record) and (len(record['dates']) > 0):
+        beginDate, endDate = getTemporalExtent(record['dates'])
+        if beginDate or endDate:
+            temporalExtentExists = True
+            extentRecord = {'start': beginDate, 'end': endDate}
+            iso.modifyTemporalExtent(root, parentXPaths['temporalExtent'], extentRecord)
+
+    if not temporalExtentExists:
+        xml.cutElement(root, parentXPaths['temporalExtentCutElement'])
 
     # Return ISO record and record identifier
     recordAsISO = xml.toString(root)
     return recordAsISO, record["doi"]
 
 
+def getTemporalExtent(dates):
+    """ Return the first set of dates marked as 'Collected', which means
+        the dates represent a bounding temporal extent for some dataset. """
+    beginDate = None
+    endDate = None
+    for dateDict in dates:
+        if 'dateType' in dateDict and dateDict['dateType'] == 'Collected':
+            beginDate = 'unknown'
+            endDate = 'unknown'
+            dateString = dateDict['date']
+            extractedDates = dateString.split('/')
+            if extractedDates[0]:
+                beginDate = extractedDates[0]
+            if extractedDates[1]:
+                endDate = extractedDates[1]
+            break
+    return beginDate, endDate
 
 def getRelatedIdentifierParts(relatedIdentifier):
     """ Return the parts of a DataCite relatedIdentifier object. """
     relatedIdentifierParts = relatedIdentifier.split(":")
     namePart = "Related Resource: " + relatedIdentifierParts[0]
     typePart = relatedIdentifierParts[1]
-    urlPart = ':'.join(relatedIdentifierParts[2: ])
+    urlPart = ':'.join(relatedIdentifierParts[2:])
     return namePart, typePart, urlPart
 
 
@@ -208,8 +232,9 @@ def getAuthors(record):
     """ Convert the list of creators into a list of author records. """
     creatorList = record["creators"]
     authorList = [{"name": creator['name'], "role": 'author'} for creator in creatorList]
-    #sys.stderr.write('authorList : %s\n' % authorList)
+    # sys.stderr.write('authorList : %s\n' % authorList)
     return authorList
+
 
 def extractEmailFromDataciteName(name):
     """Detect if the contributor has an email address as part of the name.
@@ -235,7 +260,7 @@ def splitContributors(contributorList, roleMapping):
     supportContacts = []
     metadataContacts = []
     for contributor in contributorsWithType:
-        #name = contributor['name']
+        # name = contributor['name']
         name, email = extractEmailFromDataciteName(contributor['name'])
         roleDatacite = contributor['contributorType']
         roleISO = roleMapping[roleDatacite]
@@ -287,5 +312,3 @@ def createResponsibleParties(root, contactXPath, contactList):
         iso.modifyContactDataSelectively(contactElement, contactRecord)
         contactParent.insert(contactIndex + insertCounter, contactElement)
         insertCounter += 1
-
-

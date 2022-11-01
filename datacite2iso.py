@@ -9,7 +9,7 @@ import os.path
 import api.inputjson as input_json
 import api.translate.datacite as translate
 
-__version_info__ = ('2021', '01', '13')
+__version_info__ = ('2022', '11', '01')
 __version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''
@@ -46,7 +46,7 @@ requiredArgs.add_argument("--doi", nargs=1, required=True, help="Digital Object 
 args = parser.parse_args()
 
 # Check for ISO 19139 template existence.
-DEFAULT_OUTPUT_TEMPLATE = 'dset_min_geo.xml'
+DEFAULT_OUTPUT_TEMPLATE = 'datacite.xml'
 
 templateFilePath = input_json.getTemplateFilePath(args.template, DEFAULT_OUTPUT_TEMPLATE)
 if not os.path.isfile(templateFilePath):
