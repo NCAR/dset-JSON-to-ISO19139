@@ -43,6 +43,7 @@ parentXPaths = {
     'abstract': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract',
     'supportContact': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact',
     'resourceType': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "Resource Type")]/../../../../gmd:keyword/gco:CharacterString',
+    'resourceFormat': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceFormat',
     'keyword': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../gmd:keyword',
     'keywordCutElement': '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[contains(., "GCMD")]/../../../../../../gmd:descriptiveKeywords',
     'relatedLink': '/gmd:MD_Metadata/gmd:metadataExtensionInfo',
@@ -147,6 +148,13 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Call this even if keywords are empty, so any unpopulated keyword XML elements are removed. 
     iso.addKeywords(root, parentXPaths['keyword'], keywords)
 
+    formats = []
+    if 'formats' in record:
+        formats = record['formats']
+
+    # Call this even if no formats exist, so the template XML element for resourceFormat is removed.
+    createResourceFormats(formats, root)
+
     # Create list of cited contacts from three keys: "creators", "publisher", and "contributors".
     # Also obtain a list of support contacts from "contributors".
     citedContacts = getAuthors(record)
@@ -168,7 +176,7 @@ def transformDataCiteToISO(record, templateFileISO, roleMapping):
     # Fill in Resource Support contacts.
     createResponsibleParties(root, parentXPaths['supportContact'], supportContacts)
 
-    # Fill in Resource Support contacts.
+    # Fill in Metadata contacts.
     createResponsibleParties(root, parentXPaths['metadataContact'], metadataContacts)
 
     # Fill in geographical bounding box if provided. Otherwise, delete the empty XML element to keep the XML valid.
@@ -312,3 +320,17 @@ def createResponsibleParties(root, contactXPath, contactList):
         iso.modifyContactDataSelectively(contactElement, contactRecord)
         contactParent.insert(contactIndex + insertCounter, contactElement)
         insertCounter += 1
+
+
+def createResourceFormats(formats, root):
+    """
+    Given a list of format strings and an XML tree, insert a ResourceFormat element for each format string.
+    """
+    emptyElement, parent, originalIndex = xml.cutElement(root, parentXPaths['resourceFormat'], True)
+    indexCounter = 0
+    for format in formats:
+        elementCopy = xml.copyElement(emptyElement)
+        xml.setElementValue(elementCopy, 'gmd:MD_Format/gmd:name/gco:CharacterString', format)
+        # "version" entry is optional
+        parent.insert(originalIndex + indexCounter, elementCopy)
+        indexCounter += 1

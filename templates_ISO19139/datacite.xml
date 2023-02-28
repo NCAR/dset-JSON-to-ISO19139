@@ -169,7 +169,13 @@
                     </gmd:role>
                 </gmd:CI_ResponsibleParty>
             </gmd:pointOfContact>
-
+            <gmd:resourceFormat>
+                <gmd:MD_Format>
+                    <gmd:name>
+                        <gco:CharacterString></gco:CharacterString>
+                    </gmd:name>
+                </gmd:MD_Format>
+            </gmd:resourceFormat>
             <gmd:descriptiveKeywords>
                 <gmd:MD_Keywords>
                     <gmd:keyword>
