@@ -217,7 +217,7 @@ def getTemporalExtent(dates):
     for dateDict in dates:
         if 'dateType' in dateDict and dateDict['dateType'] == 'Collected':
             beginDate = 'unknown'
-            endDate = 'unknown'
+            endDate = 'now'
             dateString = dateDict['date']
             extractedDates = dateString.split('/')
             if extractedDates[0]:
