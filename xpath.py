@@ -134,6 +134,11 @@ def printResourceFormats(file):
         formats = getChildTextList(xpaths["resourceFormat"], childXPaths["formatName"], tree)
         for fmt in formats:
             print(fmt, file=sys.stdout)
+        # Indicate that the file is missing format information
+        if not formats:
+            #print(f"UNDEFINED FORMAT in {file}", file=sys.stdout)
+            print(f"UNDEFINED FORMAT", file=sys.stdout)
+
 
 
 def getDataCiteResourceType(thesaurusXPath, keywordXPath, xml_tree):
@@ -211,10 +216,10 @@ def performOperation(file):
     """ Change this Highest-level function to define the program's current operation.
     """
     # printPublisher(file)
-    #printResourceFormats(file)
+    printResourceFormats(file)
 
     # Decide whether to print stats for non-dataset records, which can't have spatio-temporal information.
-    checkNonDatasets = False
+    #checkNonDatasets = False
     #checkNonDatasets = True
 
     # printXPathExists(file, [xpaths['geoExtent']], checkNonDatasets)         # check geographical extent existence
@@ -225,7 +230,7 @@ def performOperation(file):
     #printXPathExists(file, [xpaths['timeExtent'], xpaths['geoExtent']], checkNonDatasets)
 
     # check resource format existence
-    printXPathExists(file, [xpaths['resourceFormat']], checkNonDatasets)
+    #printXPathExists(file, [xpaths['resourceFormat']], checkNonDatasets)
 
 
 # readSTDIN = (args.inputDir == None)
