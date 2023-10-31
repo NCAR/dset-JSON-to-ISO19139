@@ -4,12 +4,11 @@ A collection of python command-line programs for examining or producing metadata
 
 There are three command-line utilities:
 
-* **xpath.py** :  print text values for a given XML element in an ISO record or group of records.
-* **dset2iso.py** : produce an ISO XML file from a JSON file containing elements from the NCAR DSET Metadata Dialect, version 12.
 * **datacite2iso.py** : produce an ISO XML file from DOI published on the DataCite metadata service.
+* **dset2iso.py** : produce an ISO XML file from a JSON file containing elements from the NCAR DSET Metadata Dialect, version 12.
+* **xpath.py** :  print text values for a given XML element in an ISO record or group of records.
 
 These utilities require python 3 and the python 'lxml' library (version 3.6 or greater).
-
 
 ## Installation Instructions
 
