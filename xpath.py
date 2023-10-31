@@ -9,7 +9,7 @@ __version_info__ = ('2022', '01', '27')
 __version__ = '-'.join(__version_info__)
 
 PROGRAM_DESCRIPTION = '''
-    A utility for extracting xml tag values from stdin or a directory with files.
+    A utility for reporting existence of xml elements, or extracting element values, from a file or directory of files.
  '''
 
 xpaths = {"resourceType": ('/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords' +
@@ -94,21 +94,27 @@ def getFirstChildTextForRole(roleString, contactXPath, childXPath, roleCodeXPath
     return foundTextValue
 
 
-def printPublisher(file):
+def printPublisher(file, checkNonDatasets=True):
     citedContact = '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation' \
                    '/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty'
     elementsToSearch = [childXPaths['individual'], childXPaths['organisation']]
     publisher_text = []
 
     tree = getXMLTree(file)
-    if tree is not None:
-        for element in elementsToSearch:
-            publisher_text = getFirstChildTextForRole('publisher', citedContact, element, childXPaths['roleCode'], tree)
-            if publisher_text:
-                print(str(publisher_text), file=sys.stdout)
-                break
-        if len(publisher_text) == 0:
-            print(f"Warning: publisher string not found for {file}")
+
+    # Return early if this file is not parsed, or it is not a dataset and checkNonDatasets is False.
+    notParsed = tree is None
+    skipNonDataset = (not checkNonDatasets) and (not isDatasetRecord(tree))
+    if notParsed or skipNonDataset:
+        return
+
+    for element in elementsToSearch:
+        publisher_text = getFirstChildTextForRole('publisher', citedContact, element, childXPaths['roleCode'], tree)
+        if publisher_text:
+            print(str(publisher_text), file=sys.stdout)
+            break
+    if len(publisher_text) == 0:
+        print(f"Warning: publisher string not found for {file}")
 
 
 def getChildTextList(parentXPath, childXPath, xml_tree):
@@ -128,9 +134,13 @@ def getChildTextList(parentXPath, childXPath, xml_tree):
     return childTextList
 
 
-def printResourceFormats(file):
+def printResourceFormats(file, checkNonDatasets=True):
     tree = getXMLTree(file)
-    if tree is not None:
+
+    # Return early if this file is not XML, or we are ignoring non-dataset records and this is a non-dataset record.
+    isIsoFile = tree is not None
+    skipFile = not isIsoFile or not (checkNonDatasets or isDatasetRecord(tree))
+    if not skipFile:
         formats = getChildTextList(xpaths["resourceFormat"], childXPaths["formatName"], tree)
         for fmt in formats:
             print(fmt, file=sys.stdout)
@@ -203,8 +213,13 @@ parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argpars
 
 parser.add_argument('--inputDir', nargs=1, help="base dir for XML files")
 parser.add_argument('--file', nargs=1, help="XML file to search")
-parser.add_argument('--attribute', nargs=1, help="limit output to elements with the given attribute value")
+parser.add_argument('--datasetsOnly', action='store_true', help="Limit output to records with resource type 'Dataset'")
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
+
+requiredArgs = parser.add_argument_group('required arguments')
+requiredArgs.add_argument('--type', nargs=1, required=True, choices=['publisher', 'resourceFormat', 'geoExtent', 'timeExtent'],
+                    help="Type of XML element: choose from [publisher, resourceFormat, geoExtent, timeExtent]")
+
 args = parser.parse_args()
 
 
@@ -213,24 +228,23 @@ args = parser.parse_args()
 ###
 
 def performOperation(file):
-    """ Change this Highest-level function to define the program's current operation.
+    """ Chooses which action to perform based on command-line options.
     """
-    # printPublisher(file)
-    printResourceFormats(file)
+    # Decide whether to limit output to dataset records only
+    checkNonDatasets = not args.datasetsOnly
 
-    # Decide whether to print stats for non-dataset records, which can't have spatio-temporal information.
-    #checkNonDatasets = False
-    #checkNonDatasets = True
+    if args.type[0] == 'publisher':
+        printPublisher(file, checkNonDatasets)
+    elif args.type[0] == 'resourceFormat':
+        printResourceFormats(file, checkNonDatasets)
+    elif args.type[0] == 'geoExtent':
+        printXPathExists(file, [xpaths['geoExtent']], checkNonDatasets)         # check geographical extent existence
+    elif args.type[0] == 'timeExtent':
+        printXPathExists(file, [xpaths['timeExtent']], checkNonDatasets)      # check temporal extent existence
 
-    # printXPathExists(file, [xpaths['geoExtent']], checkNonDatasets)         # check geographical extent existence
-    # printXPathExists(file, [xpaths['timeExtent']], checkNonDatasets)      # check temporal extent existence
     # printXPathExists(file, [xpaths['resourceFormat']], checkNonDatasets)  # check resource format existence
-
     # check spatio-temporal extent existence
     #printXPathExists(file, [xpaths['timeExtent'], xpaths['geoExtent']], checkNonDatasets)
-
-    # check resource format existence
-    #printXPathExists(file, [xpaths['resourceFormat']], checkNonDatasets)
 
 
 # readSTDIN = (args.inputDir == None)

@@ -37,7 +37,7 @@ class PrintHelpOnErrorParser(argparse.ArgumentParser):
 #
 programHelp = PROGRAM_DESCRIPTION + __version__
 parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("--template", nargs=1, help="custom ISO template to use from the 'templates' folder")
+parser.add_argument("--template", nargs=1, help="custom ISO template to use from the 'templates' folder.  Default: datacite.xml")
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 
 requiredArgs = parser.add_argument_group('required arguments')

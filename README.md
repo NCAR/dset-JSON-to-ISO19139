@@ -1,86 +1,102 @@
 # dset-JSON-to-ISO19139
 
-A python command-line program for translating JSON metadata records to XML, conforming to these metadata standards:
+A collection of python command-line programs for examining or producing metadata records according to the ISO XML 19139:2005 standard. 
 
-* Output files: ISO 19139:2005 standard  (XML).
-* Input files: DataCite 3.4 or 4.0 metadata standard (JSON).
-* Input files: NCAR DSET Metadata Dialect, version 12 (JSON). 
+There are three command-line utilities:
 
-These scripts require python 3.
+* **xpath.py** :  print text values for a given XML element in an ISO record or group of records.
+* **dset2iso.py** : produce an ISO XML file from a JSON file containing elements from the NCAR DSET Metadata Dialect, version 12.
+* **datacite2iso.py** : produce an ISO XML file from DOI published on the DataCite metadata service.
 
-The following python packages are required.
+These utilities require python 3 and the python 'lxml' library (version 3.6 or greater).
 
-* lxml 
-
-These are the package versions that have been tested: 
-
-* lxml>=3.6.0
 
 ## Installation Instructions
 
-### Prerequisites 
+See [INSTALL.md](./INSTALL.md) for instructions on how to install these commands in a user environment. 
 
-You must be on a machine with python installed, where the "virtualenv" or "conda" command is available.  One of these commands is needed to create a python environment where you can install several python library dependencies.  If either of the following commands returns a path, then you are set:
-
-     which conda
-     which virtualenv
+## Command-Line Usage 
 
 
-#### Linux
-On many versions of Linux, the "virtualenv" command should be available already.  If not, then the commands
+### datacite2iso.py
 
-     sudo yum install python-devel
-     sudo pip install virtualenv 
+A utility for translating DataCite JSON metadata into ISO 19139 metadata.
 
-should provide the "virtualenv" command.
+DataCite metadata is obtained from the DataCite website, so an internet connection is required.
 
-You will also need to make sure these two system packages are installed: libxml2-devel and libxslt-devel.
+    usage: 
 
-Install them with this command: 
+        python datacite2iso.py --doi DOI [--template <template_file>] [--help] [--version]
 
-     sudo yum install libxml2-devel libxslt-devel
+    required arguments:
 
-Then create your python development environment with these commands: 
+        --doi DOI            Digital Object Identifier (DOI)
 
-     cd
-     virtualenv pythondev
+    optional arguments:
 
-#### Mac OSX
-For Mac OSX, the "virtualenv" command is not available in the default software environment.   If you wish to run on Mac OSX, you have two main courses of action: 
+        -h, --help           show this help message and exit
+        --template TEMPLATE  custom ISO template to use from the 'templates' folder.  Default: datacite.xml
+        --version            show program's version number and exit
 
-*  Install XCode, and the "homebrew" package manager (somewhat painful to install and manage) 
+    example usages:
 
-OR
+        # Create ISO record for a specific DOI using the default DataCite XML output template
+        python datacite2iso.py --doi 10.5065/D6WD3XH5   > datacite_D6WD3XH5.xml
 
-*  Install Anaconda (much less painful to install and manage).  
+        # Insert metadata into a special XML output template with hard-coded values specific to a particular researcher
+        python datacite2iso.py --doi 10.5065/d6bc3x95 --template ral_vigh_dois.xml > test_vigh.xml
 
-Anaconda can be downloaded here:   
+### dset2iso.py
 
-https://www.anaconda.com/download/#macos
+A utility for translating JSON metadata into ISO 19139 metadata.
 
-You should choose to download Python 3 DMG installer.
+See the JSON input file found at [test_dset_full.txt](defaultInputRecords/test_dset_full.txt) for a complete example of the different metadata concepts that can be converted.  The converted file can be found at [test_dset_full.xml](defaultOutputRecords/test_dset_full.xml).
 
-Once Anaconda is installed, you should be able to run the Anaconda equivalent of the "virtualenv" command: 
+    usage: 
 
-     cd
-     conda env create pythondev
-     
+        dset2iso.py [--inputDir INPUTDIR] [--outputDir OUTPUTDIR] [--help] [--version]
 
-### Install Software in your Python Development Environment
+    optional arguments:
 
-* Navigate in your browser to https://github.com/NCAR/dset-JSON-to-ISO19139 and click the green "Clone or Download" button.   Download the zip file, which may be named "" or "master.zip".
+        -h, --help            show this help message and exit
+        --inputDir INPUTDIR   base directory for input records
+        --outputDir OUTPUTDIR
+        base directory for output records
+        --version             show program's version number and exit
 
-* Decide where you want the software to reside in your user space.  You should not need administrative privileges to install.   You only need read/write privileges in the folder where you want the software to reside.
+    example usages:
 
-Then type these commands:
+        # Convert a single DSET metadata record using STDIN and STDOUT:
+        python dset2iso.py  < defaultInputRecords/test_dset_full.txt  > test_dset_full.xml
 
-     source ~/pythondev/bin/activate
-     mv <zip_file> <install_directory>
-     cd <install_directory>
-     unzip <zip_file>
-     cd dset-JSON-to-ISO19139-master
-     pip install -r ./requirements.txt
-      
-If the final install command completes without errors, the translator should be ready to use.   To test that your installation works correctly, the following command should run without producing errors: 
+        # Convert a collection of records in a given input folder, and save to an output folder: 
+        python dset2iso.py --inputDir ./defaultInputRecords --outputDir ./defaultOutputRecords
+        
 
-     python dset2iso.py  < defaultInputRecords/test_dset_full.txt  > test_dset_full.xml
+### xpath.py
+
+A utility for reporting existence of xml elements, or extracting element values, from a file or directory of files.
+
+    usage: 
+
+        xpath.py --type {publisher,resourceFormat,geoExtent,timeExtent} [--inputDir INPUTDIR] [--file FILE] [--datasetsOnly] [--attribute ATTRIBUTE] [--version] [--help]
+
+    required arguments:
+
+        --type {publisher,resourceFormat,geoExtent,timeExtent}  Type of XML element
+
+    optional arguments:
+
+        --inputDir INPUTDIR   base dir for XML files
+        --file FILE           XML file to search
+        --datasetsOnly        Limit output to records with resource type 'Dataset'
+        --version             show program's version number and exit
+        -h, --help            show this help message and exit
+
+    example usages:
+
+        # Print all resource format strings in the EOL WAF to a file
+        python xpath.py --type resourceFormat --inputDir /data/repos/dash-eol-prod  > EOL_FORMATS.txt
+
+        # Print whether geoExtent exists for Dataset records in the CISL WAF
+        python xpath.py --type geoExtent --datasetOnly --inputDir /data/repos/dash-cisl-prod 
