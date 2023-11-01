@@ -66,10 +66,9 @@ If you are using pip, type:
     INSTALL_CMD='pip install -r ./requirements.txt'
 
 * Decide where you want the software to reside in your user space.  You should not need administrative privileges to install.   You only need read/write privileges in the folder where you want the software to reside.  We will call the target directory `<install_directory>`.
-
-* Install the software in your python environment
+* Install the software in your python environment.
+  
 If you cloned the repo, type these commands:
-
 
      mv <cloned-repo> <install_directory>
      cd <install_directory>
