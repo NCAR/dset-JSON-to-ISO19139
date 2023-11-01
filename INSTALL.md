@@ -46,7 +46,7 @@ You should choose to download Python 3 DMG installer.
 Once Anaconda is installed, you should be able to run the Anaconda equivalent of the "virtualenv" command: 
 
      cd
-     conda env create pythondev
+     conda env create -n pythondev
      
 
 ## Install Software in your Python Development Environment
