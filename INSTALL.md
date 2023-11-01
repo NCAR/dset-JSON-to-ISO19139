@@ -72,7 +72,7 @@ If you cloned the repo, type these commands:
 
      mv <cloned-repo> <install_directory>
      cd <install_directory>
-     cd dset-JSON-to-ISO19139-main
+     cd dset-JSON-to-ISO19139
      $INSTALL_CMD
 
 If you downloaded the zip file, type these commands:
