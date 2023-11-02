@@ -1,6 +1,6 @@
-name: json2iso
+name: dset2iso
 channels:
 - conda-forge
 dependencies:
 - urllib3
-- lxml
+- lxml >= 4.2.1
