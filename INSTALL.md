@@ -6,27 +6,19 @@
 You must be on a machine with python installed, where the "virtualenv" or "conda" command is available.  One of these commands is needed to create a python environment where you can install several python library dependencies.  If either of the following commands returns a path, then you are set:
 
      which conda
-     which virtualenv
+     which python3
 
 
 ### Linux
-On many versions of Linux, the "virtualenv" command should be available already.  If not, then the commands
+On many versions of Linux, the "virtualenv" command should be available already.  If not, then the command
 
-     sudo yum install python-devel
-     sudo pip install virtualenv 
+     sudo dnf install python3-virtualenv.noarch
 
-should provide the "virtualenv" command.
+should provide the ability virtual environment.
 
-You will also need to make sure these two system packages are installed: libxml2-devel and libxslt-devel.
+Then create your python development environment with this command: 
 
-Install them with this command: 
-
-     sudo yum install libxml2-devel libxslt-devel
-
-Then create your python development environment with these commands: 
-
-     cd
-     virtualenv pythondev
+     python3 -m venv <base_install_directory>/pythondev
 
 ### Mac OSX
 For Mac OSX, the "virtualenv" command is not available in the default software environment.   If you wish to run on Mac OSX, you have two main courses of action: 
