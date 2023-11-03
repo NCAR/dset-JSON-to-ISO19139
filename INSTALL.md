@@ -14,7 +14,11 @@ On many versions of Linux, the "virtualenv" command should be available already.
 
      sudo dnf install python3-virtualenv.noarch
 
-should provide the ability virtual environment.
+should provide the ability to create a python virtual environment.
+
+You may also need to install the system packages 'libxml2-devel' and 'libxslt-devel' if they are not already installed:
+
+     sudo dnf install libxml2-devel libxslt-devel
 
 Then create your python development environment with this command: 
 
