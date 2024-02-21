@@ -78,11 +78,11 @@ A utility for reporting existence of xml elements, or extracting element values,
 
     usage: 
 
-        xpath.py --type {publisher,resourceFormat,geoExtent,timeExtent} [--inputDir INPUTDIR] [--file FILE] [--datasetsOnly] [--attribute ATTRIBUTE] [--version] [--help]
+        xpath.py --type {publisher,resourceFormat,standardResourceFormat,geoExtent,timeExtent} [--inputDir INPUTDIR] [--file FILE] [--datasetsOnly] [--attribute ATTRIBUTE] [--version] [--help]
 
     required arguments:
 
-        --type {publisher,resourceFormat,geoExtent,timeExtent}  Type of XML element
+        --type {publisher,resourceFormat,standardResourceFormat,geoExtent,timeExtent}  Type of XML element
 
     optional arguments:
 

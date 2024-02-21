@@ -2,6 +2,8 @@ import argparse
 import sys
 from lxml import etree as ElementTree  # ISO XML parser
 
+from utils.harvest_mappings import getStandardResourceFormat
+
 import os.path
 from pathlib import Path
 
@@ -36,10 +38,10 @@ ISO_NAMESPACES = {'gmd': 'http://www.isotc211.org/2005/gmd',
                   'gml': 'http://www.opengis.net/gml'}
 
 
-def checkDirectoryExistence(directoryPath, directoryType):
+def checkDirectoryExistence(directoryPath, directoryDescription):
     """ generate an error if directory does not exist. """
     if not os.path.isdir(directoryPath):
-        message = directoryType + ' does not exist: %s\n' % directoryPath
+        message = directoryDescription + ' does not exist: %s\n' % directoryPath
         parser.error(message)
 
 
@@ -134,8 +136,8 @@ def getChildTextList(parentXPath, childXPath, xml_tree):
     return childTextList
 
 
-def printResourceFormats(file, checkNonDatasets=True):
-    tree = getXMLTree(file)
+def printResourceFormats(filePath, checkNonDatasets, useFormatMapping):
+    tree = getXMLTree(filePath)
 
     # Return early if this file is not XML, or we are ignoring non-dataset records and this is a non-dataset record.
     isIsoFile = tree is not None
@@ -143,11 +145,14 @@ def printResourceFormats(file, checkNonDatasets=True):
     if not skipFile:
         formats = getChildTextList(xpaths["resourceFormat"], childXPaths["formatName"], tree)
         for fmt in formats:
-            print(fmt, file=sys.stdout)
+            if useFormatMapping:
+                standardFormatName = getStandardResourceFormat(fmt)
+                print(f"{standardFormatName} | {fmt}", file=sys.stdout)
+            else:
+                print(fmt, file=sys.stdout)
         # Indicate that the file is missing format information
         if not formats:
-            #print(f"UNDEFINED FORMAT in {file}", file=sys.stdout)
-            print(f"UNDEFINED FORMAT", file=sys.stdout)
+            print(f"UNDEFINED FORMAT in {filePath}", file=sys.stdout)
 
 
 
@@ -217,8 +222,8 @@ parser.add_argument('--datasetsOnly', action='store_true', help="Limit output to
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 
 requiredArgs = parser.add_argument_group('required arguments')
-requiredArgs.add_argument('--type', nargs=1, required=True, choices=['publisher', 'resourceFormat', 'geoExtent', 'timeExtent'],
-                    help="Type of XML element: choose from [publisher, resourceFormat, geoExtent, timeExtent]")
+typeChoices = ['publisher', 'resourceFormat', 'standardResourceFormat', 'geoExtent', 'timeExtent']
+requiredArgs.add_argument('--type', nargs=1, required=True, choices=typeChoices, help=f"Type of XML element")
 
 args = parser.parse_args()
 
@@ -236,7 +241,9 @@ def performOperation(file):
     if args.type[0] == 'publisher':
         printPublisher(file, checkNonDatasets)
     elif args.type[0] == 'resourceFormat':
-        printResourceFormats(file, checkNonDatasets)
+        printResourceFormats(file, checkNonDatasets, useFormatMapping=False)
+    elif args.type[0] == 'standardResourceFormat':
+        printResourceFormats(file, checkNonDatasets, useFormatMapping=True)
     elif args.type[0] == 'geoExtent':
         printXPathExists(file, [xpaths['geoExtent']], checkNonDatasets)         # check geographical extent existence
     elif args.type[0] == 'timeExtent':
