@@ -38,10 +38,17 @@ class PrintHelpOnErrorParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-def checkDirectoryExistence(directoryPath, directoryType):
+def checkDirectoryExistence(directoryPath, directoryDescription):
     """ generate an error if directory does not exist. """
     if not os.path.isdir(directoryPath):
-        message = directoryType + ' does not exist: %s\n' % directoryPath
+        message = directoryDescription + ' does not exist: %s\n' % directoryPath
+        parser.error(message)
+
+
+def checkFileExistence(filePath, description):
+    """ generate an error if file does not exist. """
+    if not os.path.isfile(filePath):
+        message = description + ' does not exist: %s\n' % filePath
         parser.error(message)
 
 
@@ -51,6 +58,8 @@ def checkDirectoryExistence(directoryPath, directoryType):
 programHelp = PROGRAM_DESCRIPTION + __version__
 parser = PrintHelpOnErrorParser(description=programHelp, formatter_class=argparse.RawTextHelpFormatter)
 
+parser.add_argument('--template', nargs=1, help="path to ISO XML template file, default is "
+                                                "'./templates_ISO19139/dset_full.xml'")
 parser.add_argument('--inputDir', nargs=1, help="base directory for input records")
 parser.add_argument('--outputDir', nargs=1, help="base directory for output records")
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
@@ -72,12 +81,19 @@ import api.output as dset_output
 
 import pprint
 
-DSET_TEMPLATE_PATH = './templates_ISO19139/dset_full.xml'
+ISO_TEMPLATE_PATH = './templates_ISO19139/dset_full.xml'
+
+
 
 ###
 ### START OF MAIN PROGRAM
 ###
 
+if args.template and args.template[0]:
+    ## Insert new concepts into an existing ISO XML file
+    ISO_TEMPLATE_PATH = args.template[0]
+
+checkFileExistence(ISO_TEMPLATE_PATH, 'ISO template')
 
 if readSTDIN:
     inputText = sys.stdin.readlines()
@@ -86,7 +102,7 @@ if readSTDIN:
     jsonData = dset_input.getJSONData(inputText)
     # pprint.pprint(jsonData)
 
-    isoText = dset_translate.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
+    isoText = dset_translate.transformDSETToISO(jsonData, ISO_TEMPLATE_PATH)
 
     # Python 3 needs conversion from byte array to string
     isoText = str(isoText)
@@ -105,7 +121,7 @@ else:
         jsonData = dset_input.getJSONData(inputText)
 
         print(("  Translating file: " + inputFile), file=sys.stdout)
-        isoText = dset_translate.transformDSETToISO(jsonData, DSET_TEMPLATE_PATH)
+        isoText = dset_translate.transformDSETToISO(jsonData, ISO_TEMPLATE_PATH)
 
         outputFile = dset_output.prepareOutputFile(inputFile, inputDir, outputDir)
         print((inputFile + " -> " + outputFile), file=sys.stdout)

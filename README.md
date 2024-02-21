@@ -57,11 +57,11 @@ See the JSON input file found at [test_dset_full.txt](defaultInputRecords/test_d
 
     optional arguments:
 
-        -h, --help            show this help message and exit
-        --inputDir INPUTDIR   base directory for input records
-        --outputDir OUTPUTDIR
-        base directory for output records
-        --version             show program's version number and exit
+        -h, --help              show this help message and exit
+        --inputDir INPUTDIR     base directory for input records
+        --outputDir OUTPUTDIR   base directory for output records
+        --template XML_FILE_PATH  specify the XML file template to use.  Default path: './templates_ISO19139/dset_full.xml' 
+        --version               show program's version number and exit
 
     example usages:
 
