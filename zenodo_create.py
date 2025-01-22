@@ -94,7 +94,7 @@ if bucket_url == 'None':
 
     # Exit if status code is not success.
     if r.status_code != 201:
-        print(r.json)
+        print(r.json())
         exit(r.status_code)
 
     bucket_url = r.json()["links"]["bucket"]
