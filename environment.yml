@@ -4,3 +4,4 @@ channels:
 dependencies:
 - urllib3
 - lxml >= 4.2.1
+- requests
