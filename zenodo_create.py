@@ -22,6 +22,7 @@ Optional arguments:
        --test                 Upload to Zenodo's sandbox server instead; requires a separate API TOKEN
        --resume <bucket_url>  Resume uploading to a specific bucket URL
        --version              Print the program version and exit.
+       --help                 Print the program description and exit.
 
 Tested with python 3.8.
 
@@ -38,10 +39,6 @@ programHelp = PROGRAM_DESCRIPTION + __version__
 parser = argparse.ArgumentParser(description=programHelp)
 parser.add_argument("--test", help="Upload to Zenodo Sandbox server", action='store_const', const=True)
 parser.add_argument("--resume", nargs=1, help="Resume uploading to bucket URL", default=['None'])
-# parser.add_argument("--use-namespaces", help="Add qualified namespaces to elements", action='store_const', const=True)
-# parser.add_argument("--validate", help="Perform XSD validation; use with --use-namespaces.",
-#                     action='store_const', const=True)
-# parser.add_argument("--add-extra", help="Add extra Pure concepts", action='store_const', const=True)
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 
 requiredArgs = parser.add_argument_group('required arguments')
@@ -52,9 +49,7 @@ args = parser.parse_args()
 upload_folder = args.folder[0]
 bucket_url = args.resume[0]
 TEST_UPLOAD = args.test
-# USE_NAMESPACES = args.use_namespaces
-# VALIDATE_XML = args.validate
-# ADD_EXTRA_CONCEPTS = args.add_extra
+
 
 if TEST_UPLOAD:
     upload_url = 'https://sandbox.zenodo.org/api/deposit/depositions'
@@ -72,7 +67,7 @@ print(f'upload_url == {upload_url}')
 print(f'TEST_UPLOAD == {TEST_UPLOAD}')
 print(f'bucket_url == {bucket_url}')
 print(f'api_token == "{api_token}"')
-print(f'upload_folder == "{upload_folder}"')
+print(f'upload_folder == "{upload_folder}"\n\n')
 
 #
 #  Get the file paths for upload.
@@ -85,12 +80,10 @@ file_info = []
 
 for root, subdirs, files in os.walk(upload_folder):
     for file_name in files:
-        print(root)
-        print(file_name)
+        print('    ' + file_name)
         file_path = os.path.join(root, file_name)
         file_info.append((file_name, file_path))
-        #filepaths.append(file_path)
-        #print(f'filename = {filename}, path = {file_path}')
+
 
 #
 #  Create a new dataset on Zenodo if no bucket URL is provided.
@@ -107,10 +100,10 @@ if bucket_url == 'None':
     bucket_url = r.json()["links"]["bucket"]
 
 print(f'\n\n  UPLOAD BUCKET_URL = {bucket_url}\n\n')
+
 #
 #  Upload files.
 #
-
 for (file_name, file_path) in file_info:
     with open(file_path, "rb") as fp:
         r = requests.put(
