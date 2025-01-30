@@ -1,3 +1,5 @@
+import sys
+
 import requests
 import argparse
 import os
@@ -39,6 +41,7 @@ programHelp = PROGRAM_DESCRIPTION + __version__
 parser = argparse.ArgumentParser(description=programHelp)
 parser.add_argument("--test", help="Upload to Zenodo Sandbox server", action='store_const', const=True)
 parser.add_argument("--resume", nargs=1, help="Resume uploading to bucket URL", default=['None'])
+parser.add_argument("--iso_file", nargs=1, help="Path to ISO XML Metadata file", default=['None'])
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 
 requiredArgs = parser.add_argument_group('required arguments')
@@ -47,9 +50,15 @@ requiredArgs.add_argument("--folder", nargs=1, required=True, help="File Upload 
 args = parser.parse_args()
 
 upload_folder = args.folder[0]
+iso_file = args.iso_file[0]
 bucket_url = args.resume[0]
 TEST_UPLOAD = args.test
 
+# Check validity of upload path, iso_file path
+assert(os.path.isdir(upload_folder))
+
+if iso_file != 'None':
+    assert(os.path.isfile(iso_file))
 
 if TEST_UPLOAD:
     upload_url = 'https://sandbox.zenodo.org/api/deposit/depositions'
@@ -73,10 +82,9 @@ print(f'upload_folder == "{upload_folder}"\n\n')
 #  Get the file paths for upload.
 #
 
-#files = glob.glob(upload_folder + '/**/*', recursive=True)
-
 upload_folder = os.path.abspath(upload_folder)
 file_info = []
+print(f'Files in {upload_folder}:')
 
 for root, subdirs, files in os.walk(upload_folder):
     for file_name in files:
@@ -84,13 +92,19 @@ for root, subdirs, files in os.walk(upload_folder):
         file_path = os.path.join(root, file_name)
         file_info.append((file_name, file_path))
 
+# Verify that all filenames are unique
+file_names = [file_name for (file_name, file_path) in file_info]
+if len(file_names) != len(set(file_names)):
+    print('\n  ERROR: file names are not unique.  Aborting...', file=sys.stderr)
+    exit(2)
+
 
 #
 #  Create a new dataset on Zenodo if no bucket URL is provided.
 #
 if bucket_url == 'None':
     headers = {"Content-Type": "application/json"}
-    r = requests.post(upload_url, params=params,json={},headers=headers)
+    r = requests.post(upload_url, params=params, json={}, headers=headers)
 
     # Exit if status code is not success.
     if r.status_code != 201:
