@@ -32,7 +32,7 @@ Tested with python 3.8.
 
 Program Version: '''
 
-__version_info__ = ('2025', '01', '23')
+__version_info__ = ('2025', '02', '07')
 __version__ = '-'.join(__version_info__)
 
 
@@ -64,7 +64,7 @@ def getXMLTree(iso_file_path):
 programHelp = PROGRAM_DESCRIPTION + __version__
 parser = argparse.ArgumentParser(description=programHelp)
 parser.add_argument("--test", help="Upload to Zenodo Sandbox server", action='store_const', const=True)
-parser.add_argument("--resume_file", nargs=1, help="Resume uploading to bucket URL", default=['None'])
+parser.add_argument("--resume_file", nargs=1, help="Resume uploading configuration file", default=['None'])
 parser.add_argument("--iso_file", nargs=1, help="Path to ISO XML Metadata file", default=['None'])
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 
@@ -78,7 +78,7 @@ iso_file = args.iso_file[0]
 resume_file = args.resume_file[0]
 TEST_UPLOAD = args.test
 
-# Check validity of upload folder path, iso_file path
+# Check validity of upload folder path, resume file path, iso_file path
 assert(os.path.isdir(upload_folder))
 
 if resume_file != 'None':
@@ -100,8 +100,6 @@ if iso_file != 'None':
     metadata_pretty = json.dumps(metadata, indent=4)
     print(f'metadata = {metadata_pretty}')
 
-
-# Collect metadata if iso_file is provided
 
 if TEST_UPLOAD:
     upload_url = 'https://sandbox.zenodo.org/api/deposit/depositions'
@@ -186,7 +184,7 @@ for (file_name, file_path) in file_info:
         )
         checksum = r.json()['checksum']
         size =  r.json()['size']
-        print(f'{file_name}:  checksum={checksum}, size={size}')
+        print(f'{file_name}: checksum= {checksum}, size= {size}')
 
 #
 # Upload metadata if there is any.
