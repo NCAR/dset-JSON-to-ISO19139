@@ -3,6 +3,8 @@ import sys
 import requests
 import argparse
 import os
+import json
+from lxml import etree as ElementTree       # ISO XML parser
 
 PROGRAM_DESCRIPTION = '''
 
@@ -33,6 +35,28 @@ Program Version: '''
 __version_info__ = ('2025', '01', '23')
 __version__ = '-'.join(__version_info__)
 
+
+#
+#  ISO File Metadata Mappings for Zenodo
+#
+
+METADATA_PATHS = {
+    'title'            : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString',
+    'description'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString',
+}
+
+# We need XML namespace mappings in order to search the ISO element tree
+ISO_NAMESPACES = {'gmd': 'http://www.isotc211.org/2005/gmd',
+                  'xlink': 'http://www.w3.org/1999/xlink',
+                  'gco': 'http://www.isotc211.org/2005/gco',
+                  'gml': 'http://www.opengis.net/gml'}
+
+
+def getXMLTree(iso_file_path):
+    tree = ElementTree.parse(iso_file_path)
+    root = tree.getroot()
+    return root
+
 #
 #  Parse the command line options.
 #
@@ -40,7 +64,7 @@ __version__ = '-'.join(__version_info__)
 programHelp = PROGRAM_DESCRIPTION + __version__
 parser = argparse.ArgumentParser(description=programHelp)
 parser.add_argument("--test", help="Upload to Zenodo Sandbox server", action='store_const', const=True)
-parser.add_argument("--resume", nargs=1, help="Resume uploading to bucket URL", default=['None'])
+parser.add_argument("--resume_file", nargs=1, help="Resume uploading to bucket URL", default=['None'])
 parser.add_argument("--iso_file", nargs=1, help="Path to ISO XML Metadata file", default=['None'])
 parser.add_argument('--version', action='version', version="%(prog)s (" + __version__ + ")")
 
@@ -51,14 +75,33 @@ args = parser.parse_args()
 
 upload_folder = args.folder[0]
 iso_file = args.iso_file[0]
-bucket_url = args.resume[0]
+resume_file = args.resume_file[0]
 TEST_UPLOAD = args.test
 
-# Check validity of upload path, iso_file path
+# Check validity of upload folder path, iso_file path
 assert(os.path.isdir(upload_folder))
 
+if resume_file != 'None':
+    assert (os.path.isfile(resume_file))
+
+metadata = {}
 if iso_file != 'None':
     assert(os.path.isfile(iso_file))
+
+    # Parse ISO XML file and pull metadata according to METADATA_PATHS.
+    xml_root = getXMLTree(iso_file)
+    for (key, xpath) in METADATA_PATHS.items():
+        element = xml_root.xpath(xpath, namespaces=ISO_NAMESPACES)
+        value = element[0].text
+        metadata[key] = value
+
+    # Add fields required by Zenodo
+    metadata['upload_type'] = 'dataset'
+    metadata_pretty = json.dumps(metadata, indent=4)
+    print(f'metadata = {metadata_pretty}')
+
+
+# Collect metadata if iso_file is provided
 
 if TEST_UPLOAD:
     upload_url = 'https://sandbox.zenodo.org/api/deposit/depositions'
@@ -71,10 +114,11 @@ else:
 
 api_token = os.environ.get('ZENODO_TOKEN')
 params = {'access_token': api_token}
+headers = {"Content-Type": "application/json"}
 
 print(f'upload_url == {upload_url}')
 print(f'TEST_UPLOAD == {TEST_UPLOAD}')
-print(f'bucket_url == {bucket_url}')
+print(f'resume_file == {resume_file}')
 print(f'api_token == "{api_token}"')
 print(f'upload_folder == "{upload_folder}"\n\n')
 
@@ -100,10 +144,9 @@ if len(file_names) != len(set(file_names)):
 
 
 #
-#  Create a new dataset on Zenodo if no bucket URL is provided.
+#  Create a new dataset on Zenodo if no resume file is provided.
 #
-if bucket_url == 'None':
-    headers = {"Content-Type": "application/json"}
+if resume_file == 'None':
     r = requests.post(upload_url, params=params, json={}, headers=headers)
 
     # Exit if status code is not success.
@@ -111,9 +154,25 @@ if bucket_url == 'None':
         print(r.json())
         exit(r.status_code)
 
+    dataset_id = r.json()["id"]
     bucket_url = r.json()["links"]["bucket"]
+    resume_upload_data = {'dataset_id': dataset_id, 'bucket_url': bucket_url}
 
-print(f'\n\n  UPLOAD BUCKET_URL = {bucket_url}\n\n')
+    # Save upload ids to a 'resume file'
+    resume_file_folder = '/tmp'
+    resume_file_name = f'resume_upload_{dataset_id}.json'
+    resume_file = f'{resume_file_folder}/{resume_file_name}'
+    with open(resume_file, "w") as f:
+        json.dump(resume_upload_data, f, indent=4)
+else:
+    # Grab upload parameters from a previous upload attempt
+    with open(resume_file, 'r') as openfile:
+        resume_data = json.load(openfile)
+        dataset_id = resume_data['dataset_id']
+        bucket_url = resume_data['bucket_url']
+
+
+print(f'\n\n  "UPLOAD RESUME" CONFIGURATION FILE = {resume_file}\n\n')
 
 #
 #  Upload files.
@@ -128,3 +187,19 @@ for (file_name, file_path) in file_info:
         checksum = r.json()['checksum']
         size =  r.json()['size']
         print(f'{file_name}:  checksum={checksum}, size={size}')
+
+#
+# Upload metadata if there is any.
+#
+if metadata:
+    print('\n Uploading metadata...\n')
+    upload_metadata = {'metadata': metadata}
+    r = requests.put('%s/%s' % (upload_url, dataset_id),
+                     params=params, data=json.dumps(upload_metadata),
+                     headers=headers)
+    if r.status_code != 200:
+        print(r.json())
+        exit(r.status_code)
+
+
+print(f'\n...DONE\n')
