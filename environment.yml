@@ -1,4 +1,4 @@
-name: dset2iso
+name: metadata-tools
 channels:
 - conda-forge
 dependencies:
