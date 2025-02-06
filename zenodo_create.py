@@ -5,6 +5,7 @@ import argparse
 import os
 import json
 from lxml import etree as ElementTree       # ISO XML parser
+from api.translate.zenodo import get_creators_as_json, ISO_NAMESPACES
 
 PROGRAM_DESCRIPTION = '''
 
@@ -23,10 +24,11 @@ Example usage:
 
 Optional arguments:
 
-       --test                 Upload to Zenodo's sandbox server instead; requires a separate API TOKEN
-       --resume <bucket_url>  Resume uploading to a specific bucket URL
-       --version              Print the program version and exit.
-       --help                 Print the program description and exit.
+       --iso_file <file_path>   Path to ISO XML Metadata file
+       --test                   Upload to Zenodo's sandbox server instead; requires a separate API TOKEN
+       --resume <bucket_url>    Resume uploading to a specific bucket URL
+       --version                Print the program version and exit.
+       --help                   Print the program description and exit.
 
 Tested with python 3.8.
 
@@ -45,11 +47,6 @@ METADATA_PATHS = {
     'description'      : '/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString',
 }
 
-# We need XML namespace mappings in order to search the ISO element tree
-ISO_NAMESPACES = {'gmd': 'http://www.isotc211.org/2005/gmd',
-                  'xlink': 'http://www.w3.org/1999/xlink',
-                  'gco': 'http://www.isotc211.org/2005/gco',
-                  'gml': 'http://www.opengis.net/gml'}
 
 
 def getXMLTree(iso_file_path):
@@ -96,6 +93,8 @@ if iso_file != 'None':
         metadata[key] = value
 
     # Add fields required by Zenodo
+    authors_json = get_creators_as_json(xml_root)
+    metadata['creators'] = authors_json
     metadata['upload_type'] = 'dataset'
     metadata_pretty = json.dumps(metadata, indent=4)
     print(f'metadata = {metadata_pretty}')
@@ -130,6 +129,9 @@ print(f'Files in {upload_folder}:')
 
 for root, subdirs, files in os.walk(upload_folder):
     for file_name in files:
+        # Ignore .DS_Store files always
+        if file_name == '.DS_Store':
+            continue
         print('    ' + file_name)
         file_path = os.path.join(root, file_name)
         file_info.append((file_name, file_path))
@@ -182,9 +184,13 @@ for (file_name, file_path) in file_info:
             data=fp,
             params=params,
         )
-        checksum = r.json()['checksum']
-        size =  r.json()['size']
-        print(f'{file_name}: checksum= {checksum}, size= {size}')
+        try:
+            checksum = r.json()['checksum']
+            size =  r.json()['size']
+            print(f'{file_name}: checksum= {checksum}, size= {size}')
+        except KeyError:
+            print(r.json())
+            exit(r.status_code)
 
 #
 # Upload metadata if there is any.
@@ -198,6 +204,13 @@ if metadata:
     if r.status_code != 200:
         print(r.json())
         exit(r.status_code)
+
+
+TEST_PUBLISH = False
+if TEST_PUBLISH:
+    r = requests.post(upload_url + '/%s/actions/publish' % dataset_id, params=params)
+    print(f'Publish status code: {r.status_code}')
+
 
 
 print(f'\n...DONE\n')
