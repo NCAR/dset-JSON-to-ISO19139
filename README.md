@@ -1,4 +1,4 @@
-# dset-JSON-to-ISO19139
+# data-tools
 
 A collection of python command-line programs for data upload, metadata translation, and metadata upload.
 
@@ -16,6 +16,29 @@ These utilities require python 3 and the python 'lxml' library (version 3.6 or g
 See [INSTALL.md](./INSTALL.md) for instructions on how to install these commands in a user environment. 
 
 ## Command-Line Usage 
+
+
+### zenodo_create.py
+
+A program for uploading files and metadata to Zenodo.  
+
+An API token for Zenodo is required.  Before running the program, set the API token value as follows:
+
+ export ZENODO_TOKEN='<my_token>'
+ 
+Also required is a path to a folder with files to upload.  All files in the folder and its sub-folders 
+will be uploaded.  If the upload folder contains spaces, then surround the path in single quotes.
+
+Example usage:
+
+       python zenodo_create.py --folder <local_folder_with_files>
+
+Optional arguments:
+
+       --test                 Upload to Zenodo's sandbox server instead; requires a separate API TOKEN
+       --resume <bucket_url>  Resume uploading to a specific bucket URL
+       --version              Print the program version and exit.
+       --help                 Print the program description and exit.
 
 
 ### datacite2iso.py
