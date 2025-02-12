@@ -1,4 +1,4 @@
-name: metadata-tools
+name: data-tools
 channels:
 - conda-forge
 dependencies:
