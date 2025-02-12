@@ -1,9 +1,10 @@
 # dset-JSON-to-ISO19139
 
-A collection of python command-line programs for examining or producing metadata records according to the ISO XML 19139:2005 standard. 
+A collection of python command-line programs for data upload, metadata translation, and metadata upload.
 
-There are three command-line utilities:
+These are the command-line utilities:
 
+* **zenodo_create.py** :  A program for uploading data files and metadata to Zenodo.  
 * **datacite2iso.py** : produce an ISO XML file from DOI published on the DataCite metadata service.
 * **dset2iso.py** : produce an ISO XML file from a JSON file containing elements from the NCAR DSET Metadata Dialect, version 12.
 * **xpath.py** :  print text values for a given XML element in an ISO record or group of records.
